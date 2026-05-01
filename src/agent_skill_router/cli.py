@@ -162,25 +162,22 @@ def setup(
         typer.echo(f"Configured '{agent}' MCP server in {config_path}  [{scope_label}]")
         return
 
-    # Auto-discovery mode
-    discovered_any = False
+    # Auto-discovery mode: install into the appropriate scope for every
+    # provider that supports automated install.
+    installed_any = False
     for provider in AGENT_PROVIDERS.values():
+        config_path = provider.config_path(user=user)
         try:
-            paths = provider.discover()
+            provider.install(config_path)
+            scope_label = "user" if user else "workspace"
+            typer.echo(f"Configured '{provider.name}' MCP server in {config_path}  [{scope_label}]")
+            installed_any = True
         except NotImplementedError:
             continue
 
-        for path in paths:
-            try:
-                provider.install(path)
-                typer.echo(f"Configured '{provider.name}' MCP server in {path}")
-                discovered_any = True
-            except NotImplementedError:
-                pass
-
-    if not discovered_any:
+    if not installed_any:
         typer.echo(
-            "No agent config files were auto-detected.\n"
+            "No agents with automated setup were found.\n"
             f"Run with a specific agent: agent-skill-router setup --agent <name>\n"
             f"Available agents: {', '.join(sorted(AGENT_PROVIDERS))}"
         )

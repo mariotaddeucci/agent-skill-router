@@ -176,25 +176,44 @@ class TestSetupCommand:
         assert "not supported" in result.output
         assert "claude" in result.output.lower()
 
-    def test_setup_autodiscovery_finds_copilot(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_setup_autodiscovery_workspace(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path / "home"))
 
-        ws_config = tmp_path / ".vscode" / "mcp.json"
-        ws_config.parent.mkdir(parents=True)
-        ws_config.write_text("{}\n")
-
         result = runner.invoke(app, ["setup"])
+
         assert result.exit_code == 0
         assert "github-copilot" in result.output
+        assert "workspace" in result.output
 
-        data = json.loads(ws_config.read_text())
+        config = tmp_path / ".vscode" / "mcp.json"
+        assert config.exists()
+        data = json.loads(config.read_text())
         assert "agent-skill-router" in data["servers"]
 
-    def test_setup_autodiscovery_no_agents_found(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_setup_autodiscovery_user(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        fake_home = tmp_path / "home"
+        monkeypatch.setattr(Path, "home", staticmethod(lambda: fake_home))
+
+        result = runner.invoke(app, ["setup", "--user"])
+
+        assert result.exit_code == 0
+        assert "github-copilot" in result.output
+        assert "user" in result.output
+
+        config = fake_home / ".vscode" / "mcp.json"
+        assert config.exists()
+        data = json.loads(config.read_text())
+        assert "agent-skill-router" in data["servers"]
+
+    def test_setup_autodiscovery_no_supported_agents(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path / "home"))
 
+        import agent_skill_router.cli as cli_mod
+
+        monkeypatch.setattr(cli_mod, "AGENT_PROVIDERS", {})
+
         result = runner.invoke(app, ["setup"])
         assert result.exit_code == 0
-        assert "auto-detected" in result.output
+        assert "automated setup" in result.output
