@@ -2,8 +2,19 @@
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from agent_skill_router.agents._base import _DEFAULT_MCP_CONFIG, AgentSetupProvider, McpConfig
+from agent_skill_router.agents._base import (
+    _DEFAULT_MCP_CONFIG,
+    AgentSetupProvider,
+    McpConfig,
+    PromptSlashCommand,
+    SlashCommand,
+    _parse_frontmatter,
+)
+
+if TYPE_CHECKING:
+    from agent_skill_router._skills import SkillEntry
 
 
 class ClaudeSetupProvider(AgentSetupProvider):
@@ -21,6 +32,8 @@ class ClaudeSetupProvider(AgentSetupProvider):
     Claude Code JSON schema (``type``, ``command``, ``args``). Existing entries
     are left untouched; the agent-skill-router entry is added or updated
     idempotently.
+
+    Prompts: reads custom slash commands from ``.claude/commands/*.md`` files.
     """
 
     name = "claude"
@@ -74,3 +87,51 @@ class ClaudeSetupProvider(AgentSetupProvider):
             json.dumps(data, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
+
+    def get_slash_commands(self, skills: list["SkillEntry"]) -> list[SlashCommand]:
+        """Convert skills into Claude Code slash commands (prompts)."""
+        commands: list[SlashCommand] = []
+        for skill in skills:
+            skill_md = skill.directory / "SKILL.md"
+            if not skill_md.exists():
+                continue
+
+            commands.append(
+                PromptSlashCommand(
+                    name=f"/{skill.name}",
+                    description=skill.description,
+                    prompt=skill_md.read_text(encoding="utf-8"),
+                )
+            )
+        return commands
+
+    def list_prompts(self, root: Path | None = None) -> list[SlashCommand]:
+        """Read prompts from ``.claude/commands/*.md`` under *root*.
+
+        Each ``.md`` file may contain YAML frontmatter with a ``description``
+        key.  The command name is derived from the file stem.
+
+        Example file (``.claude/commands/review.md``)::
+
+            ---
+            description: 'Review the current diff'
+            allowed-tools: ["Read", "Bash"]
+            ---
+            Review the following diff and suggest improvements...
+        """
+        commands_dir = (root or Path.cwd()) / ".claude" / "commands"
+        if not commands_dir.is_dir():
+            return []
+
+        commands: list[SlashCommand] = []
+        for path in sorted(commands_dir.glob("*.md")):
+            content = path.read_text(encoding="utf-8")
+            meta, body = _parse_frontmatter(content)
+            commands.append(
+                PromptSlashCommand(
+                    name=f"/{path.stem}",
+                    description=meta.get("description", ""),
+                    prompt=body,
+                )
+            )
+        return commands

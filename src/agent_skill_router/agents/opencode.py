@@ -2,8 +2,19 @@
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from agent_skill_router.agents._base import _DEFAULT_MCP_CONFIG, AgentSetupProvider, McpConfig
+from agent_skill_router.agents._base import (
+    _DEFAULT_MCP_CONFIG,
+    AgentSetupProvider,
+    McpConfig,
+    PromptSlashCommand,
+    SlashCommand,
+    _parse_frontmatter,
+)
+
+if TYPE_CHECKING:
+    from agent_skill_router._skills import SkillEntry
 
 
 class OpenCodeSetupProvider(AgentSetupProvider):
@@ -71,3 +82,52 @@ class OpenCodeSetupProvider(AgentSetupProvider):
             json.dumps(data, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
+
+    def get_slash_commands(self, skills: list["SkillEntry"]) -> list[SlashCommand]:
+        """Convert skills into OpenCode slash commands (prompts)."""
+        commands: list[SlashCommand] = []
+        for skill in skills:
+            skill_md = skill.directory / "SKILL.md"
+            if not skill_md.exists():
+                continue
+
+            commands.append(
+                PromptSlashCommand(
+                    name=f"/{skill.name}",
+                    description=skill.description,
+                    prompt=skill_md.read_text(encoding="utf-8"),
+                )
+            )
+        return commands
+
+    def list_prompts(self, root: Path | None = None) -> list[SlashCommand]:
+        """Read prompts from ``.opencode/commands/*.md`` under *root*.
+
+        OpenCode stores custom slash commands as Markdown files under
+        ``.opencode/commands/`` (global: ``~/.config/opencode/commands/``).
+        Each file may contain YAML frontmatter with a ``description`` key.
+        The filename stem becomes the command name.
+
+        Example file (``.opencode/commands/review.md``)::
+
+            ---
+            description: Review the current diff
+            ---
+            Review the following diff and suggest improvements...
+        """
+        commands_dir = (root or Path.cwd()) / ".opencode" / "commands"
+        if not commands_dir.is_dir():
+            return []
+
+        commands: list[SlashCommand] = []
+        for path in sorted(commands_dir.glob("*.md")):
+            content = path.read_text(encoding="utf-8")
+            meta, body = _parse_frontmatter(content)
+            commands.append(
+                PromptSlashCommand(
+                    name=f"/{path.stem}",
+                    description=meta.get("description", ""),
+                    prompt=body,
+                )
+            )
+        return commands

@@ -38,20 +38,21 @@ def test_stub_providers_have_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPat
         assert ws != usr, f"{name}: workspace and user paths must differ"
 
 
-def test_stub_providers_raise_on_discover() -> None:
+def test_all_providers_support_discover(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path / "home"))
     for name, provider in AGENT_PROVIDERS.items():
-        if name in {"github-copilot", "claude", "opencode"}:
-            continue
-        with pytest.raises(NotImplementedError):
-            provider.discover()
+        result = provider.discover()
+        assert isinstance(result, list), f"{name}: discover() must return a list"
 
 
-def test_stub_providers_raise_on_install(tmp_path: Path) -> None:
+def test_all_providers_support_install(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path / "home"))
     for name, provider in AGENT_PROVIDERS.items():
-        if name in {"github-copilot", "claude", "opencode"}:
-            continue
-        with pytest.raises(NotImplementedError):
-            provider.install(tmp_path / "config.json")
+        config_path = provider.config_path_workspace()
+        provider.install(config_path)
+        assert config_path.exists(), f"{name}: install() must create the config file"
 
 
 class TestSetupCommand:
@@ -80,11 +81,12 @@ class TestSetupCommand:
         assert result.exit_code == 1
         assert "unknown agent" in result.output
 
-    def test_setup_stub_agent_shows_manual_instructions(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_setup_cursor_workspace(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         result = runner.invoke(app, ["setup-mcp", "cursor"])
-        assert result.exit_code == 1
-        assert "not supported" in result.output
+        assert result.exit_code == 0
+        config = tmp_path / ".cursor" / "mcp.json"
+        assert config.exists()
         assert "cursor" in result.output.lower()
 
     def test_setup_autodiscovery_workspace(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

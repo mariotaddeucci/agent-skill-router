@@ -2,8 +2,19 @@
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from agent_skill_router.agents._base import _DEFAULT_MCP_CONFIG, AgentSetupProvider, McpConfig
+from agent_skill_router.agents._base import (
+    _DEFAULT_MCP_CONFIG,
+    AgentSetupProvider,
+    McpConfig,
+    PromptSlashCommand,
+    SlashCommand,
+    _parse_frontmatter,
+)
+
+if TYPE_CHECKING:
+    from agent_skill_router._skills import SkillEntry
 
 
 class GitHubCopilotSetupProvider(AgentSetupProvider):
@@ -74,3 +85,55 @@ class GitHubCopilotSetupProvider(AgentSetupProvider):
             json.dumps(data, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
+
+    def get_slash_commands(self, skills: list["SkillEntry"]) -> list[SlashCommand]:
+        """Convert skills into GitHub Copilot slash commands (prompts)."""
+        commands: list[SlashCommand] = []
+        for skill in skills:
+            skill_md = skill.directory / "SKILL.md"
+            if not skill_md.exists():
+                continue
+
+            commands.append(
+                PromptSlashCommand(
+                    name=f"/{skill.name}",
+                    description=skill.description,
+                    prompt=skill_md.read_text(encoding="utf-8"),
+                )
+            )
+        return commands
+
+    def list_prompts(self, root: Path | None = None) -> list[SlashCommand]:
+        """Read prompts from ``.github/prompts/*.prompt.md`` under *root*.
+
+        Each ``.prompt.md`` file may contain YAML frontmatter with a
+        ``description`` key.  The command name is derived from the file stem
+        with the trailing ``.prompt`` segment removed.
+
+        Example file (``.github/prompts/fix-bug.prompt.md``)::
+
+            ---
+            mode: 'chat'
+            description: 'Fix a bug in the selected code'
+            ---
+            You are an expert debugger...
+        """
+        prompts_dir = (root or Path.cwd()) / ".github" / "prompts"
+        if not prompts_dir.is_dir():
+            return []
+
+        commands: list[SlashCommand] = []
+        for path in sorted(prompts_dir.glob("*.prompt.md")):
+            content = path.read_text(encoding="utf-8")
+            meta, body = _parse_frontmatter(content)
+            name = path.stem  # e.g. "fix-bug.prompt" → strip trailing ".prompt"
+            if name.endswith(".prompt"):
+                name = name[: -len(".prompt")]
+            commands.append(
+                PromptSlashCommand(
+                    name=f"/{name}",
+                    description=meta.get("description", ""),
+                    prompt=body,
+                )
+            )
+        return commands
