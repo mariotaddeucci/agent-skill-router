@@ -1,6 +1,4 @@
-"""CLI for agent-skill-router: list, install, and run the MCP server."""
-
-from __future__ import annotations
+"""CLI for agent-skill-router: list, install, run, and setup commands."""
 
 from pathlib import Path
 from typing import Annotated
@@ -8,6 +6,7 @@ from typing import Annotated
 import typer
 
 from agent_skill_router._skills import discover_skills, install_skill
+from agent_skill_router.agents import AGENT_PROVIDERS
 from agent_skill_router.server import _BUNDLED_SKILLS_PATH, _PROVIDER_ROOTS, _resolve_roots
 from agent_skill_router.settings import Settings
 
@@ -116,6 +115,75 @@ def run() -> None:
     settings = Settings()
     mcp = build_mcp(settings)
     mcp.run()
+
+
+@app.command()
+def setup(
+    agent: Annotated[
+        str | None,
+        typer.Argument(
+            help=(
+                "Agent to configure (e.g. github-copilot). "
+                f"Available: {', '.join(AGENT_PROVIDERS)}. "
+                "Omit to auto-discover all installed agents."
+            ),
+        ),
+    ] = None,
+    user: Annotated[
+        bool,
+        typer.Option("--user", help="Write to the user-scoped config file instead of the workspace one."),
+    ] = False,
+) -> None:
+    """Add the Agent Skill Router MCP server to an agent's config.
+
+    When --agent is omitted, each provider that supports auto-discovery is
+    queried; all detected config files are updated automatically.
+    """
+    if agent is not None:
+        provider = AGENT_PROVIDERS.get(agent)
+        if provider is None:
+            available = ", ".join(sorted(AGENT_PROVIDERS))
+            typer.echo(f"Error: unknown agent '{agent}'. Available: {available}", err=True)
+            raise typer.Exit(code=1)
+
+        try:
+            config_path = provider.config_path(user=user)
+            provider.install(config_path)
+        except NotImplementedError:
+            scope = "user" if user else "workspace"
+            config_path = provider.config_path(user=user)
+            typer.echo(
+                f"Automated setup is not supported for '{agent}'.\n"
+                f"Add the MCP server manually to: {config_path}  [{scope}]"
+            )
+            raise typer.Exit(code=1) from None
+
+        scope_label = "user" if user else "workspace"
+        typer.echo(f"Configured '{agent}' MCP server in {config_path}  [{scope_label}]")
+        return
+
+    # Auto-discovery mode
+    discovered_any = False
+    for provider in AGENT_PROVIDERS.values():
+        try:
+            paths = provider.discover()
+        except NotImplementedError:
+            continue
+
+        for path in paths:
+            try:
+                provider.install(path)
+                typer.echo(f"Configured '{provider.name}' MCP server in {path}")
+                discovered_any = True
+            except NotImplementedError:
+                pass
+
+    if not discovered_any:
+        typer.echo(
+            "No agent config files were auto-detected.\n"
+            f"Run with a specific agent: agent-skill-router setup --agent <name>\n"
+            f"Available agents: {', '.join(sorted(AGENT_PROVIDERS))}"
+        )
 
 
 def main() -> None:

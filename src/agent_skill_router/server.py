@@ -14,7 +14,7 @@ from fastmcp.server.providers.skills import (
     VSCodeSkillsProvider,
 )
 
-from .settings import Settings
+from agent_skill_router.settings import Settings
 
 # Skills bundled inside this package — resolved relative to this file, works
 # both in development (src layout) and after pip install.

@@ -1,10 +1,8 @@
 """Skill discovery and installation helpers."""
 
-from __future__ import annotations
-
 import shutil
 from dataclasses import dataclass
-from pathlib import Path  # noqa: TC003 — used at runtime in dataclass fields and signatures
+from pathlib import Path
 
 from fastmcp.server.providers.skills._common import parse_frontmatter
 
