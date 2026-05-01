@@ -35,6 +35,7 @@ classifiers = [
 dependencies = [
     "fastmcp>=3.2.4,<4",
     "pydantic-settings>=2.14.0,<3",
+    "tomli-w>=1.2.0,<2",
     "typer>=0.15.0,<1",
 ]
 
