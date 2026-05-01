@@ -23,8 +23,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastmcp", specifier = ">=3.2.4" },
-    { name = "pydantic-settings", specifier = ">=2.14.0" },
+    { name = "fastmcp", specifier = ">=3.2.4,<4" },
+    { name = "pydantic-settings", specifier = ">=2.14.0,<3" },
 ]
 
 [package.metadata.requires-dev]
