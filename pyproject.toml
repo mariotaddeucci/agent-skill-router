@@ -35,6 +35,7 @@ classifiers = [
 dependencies = [
     "fastmcp>=3.2.4,<4",
     "pydantic-settings>=2.14.0,<3",
+    "ruamel.yaml>=0.18.0,<1",
     "typer>=0.15.0,<1",
 ]
 

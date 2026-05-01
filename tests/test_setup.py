@@ -4,9 +4,10 @@ import json
 from pathlib import Path
 
 import pytest
+from ruamel.yaml import YAML
 from typer.testing import CliRunner
 
-from agent_skill_router.agents import AGENT_PROVIDERS, GitHubCopilotSetupProvider
+from agent_skill_router.agents import AGENT_PROVIDERS, GitHubCopilotSetupProvider, GooseSetupProvider
 from agent_skill_router.agents._base import _DEFAULT_MCP_CONFIG, McpConfig
 from agent_skill_router.cli import app
 
@@ -40,7 +41,7 @@ def test_stub_providers_have_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPat
 
 def test_stub_providers_raise_on_discover() -> None:
     for name, provider in AGENT_PROVIDERS.items():
-        if name == "github-copilot":
+        if name in {"github-copilot", "goose"}:
             continue
         with pytest.raises(NotImplementedError):
             provider.discover()
@@ -48,7 +49,7 @@ def test_stub_providers_raise_on_discover() -> None:
 
 def test_stub_providers_raise_on_install(tmp_path: Path) -> None:
     for name, provider in AGENT_PROVIDERS.items():
-        if name == "github-copilot":
+        if name in {"github-copilot", "goose"}:
             continue
         with pytest.raises(NotImplementedError):
             provider.install(tmp_path / "config.json")
@@ -143,7 +144,80 @@ class TestGitHubCopilotSetupProvider:
         assert config.exists()
 
 
-class TestSetupCommand:
+class TestGooseSetupProvider:
+    def setup_method(self) -> None:
+        self.provider = GooseSetupProvider()
+
+    def test_config_path_workspace(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.chdir(tmp_path)
+        assert self.provider.config_path_workspace() == tmp_path / ".goose" / "mcp.json"
+
+    def test_config_path_user(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path))
+        assert self.provider.config_path_user() == tmp_path / ".config" / "goose" / "config.yaml"
+
+    def test_discover_returns_empty_when_no_config_exists(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path / "home"))
+        assert self.provider.discover() == []
+
+    def test_discover_returns_existing_paths(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path / "home"))
+
+        usr = tmp_path / "home" / ".config" / "goose" / "config.yaml"
+        usr.parent.mkdir(parents=True)
+        usr.write_text("extensions: {}\n")
+        assert self.provider.discover() == [usr]
+
+    def test_install_creates_new_config(self, tmp_path: Path) -> None:
+        config = tmp_path / ".config" / "goose" / "config.yaml"
+        self.provider.install(config)
+
+        yaml = YAML()
+        data = yaml.load(config.read_text())
+        entry = data["extensions"]["agent-skill-router"]
+        assert entry["type"] == "stdio"
+        assert entry["cmd"] == _DEFAULT_MCP_CONFIG.command
+        assert entry["args"] == list(_DEFAULT_MCP_CONFIG.args)
+        assert entry["enabled"] is True
+        assert entry["name"] == "agent-skill-router"
+        assert entry["timeout"] == 300
+        assert entry["bundled"] is None
+        assert entry["envs"] == {}
+        assert entry["description"] == "Agent Skill Router MCP server"
+
+    def test_install_merges_existing_config(self, tmp_path: Path) -> None:
+        config = tmp_path / ".config" / "goose" / "config.yaml"
+        config.parent.mkdir(parents=True)
+        config.write_text("extensions:\n  other-tool:\n    type: stdio\n    cmd: foo\n    args: []\n")
+
+        self.provider.install(config)
+
+        yaml = YAML()
+        data = yaml.load(config.read_text())
+        assert "other-tool" in data["extensions"]
+        assert "agent-skill-router" in data["extensions"]
+
+    def test_install_is_idempotent(self, tmp_path: Path) -> None:
+        config = tmp_path / ".config" / "goose" / "config.yaml"
+        self.provider.install(config)
+        first = config.read_text()
+        self.provider.install(config)
+        second = config.read_text()
+        assert first == second
+
+        yaml = YAML()
+        data = yaml.load(config.read_text())
+        assert len(data["extensions"]) == 1
+
+    def test_install_creates_parent_dirs(self, tmp_path: Path) -> None:
+        config = tmp_path / "deep" / "nested" / "config.yaml"
+        self.provider.install(config)
+        assert config.exists()
+
     def test_setup_github_copilot_workspace(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         result = runner.invoke(app, ["setup-mcp", "github-copilot"])
