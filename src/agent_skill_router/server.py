@@ -24,52 +24,94 @@ _BUNDLED_SKILLS_PATH = Path(__file__).parent / "skills"
 # roots_by_level maps "workspace" | "user" -> list of paths for that level.
 # Vendor classes are used for their own roots; SkillsDirectoryProvider is used
 # when we need to pass a filtered subset of roots explicitly.
-_PROVIDER_ROOTS: list[tuple[
-    str,                                      # settings attribute name
-    type,                                     # provider class
-    dict[Literal["workspace", "user"], list[Path]],
-]] = [
-    ("enable_claude", ClaudeSkillsProvider, {
-        "workspace": [Path.cwd() / ".claude" / "skills"],
-        "user": [Path.home() / ".claude" / "skills"],
-    }),
-    ("enable_cursor", CursorSkillsProvider, {
-        "workspace": [Path.cwd() / ".cursor" / "skills"],
-        "user": [Path.home() / ".cursor" / "skills"],
-    }),
-    ("enable_vscode", VSCodeSkillsProvider, {
-        "workspace": [Path.cwd() / ".copilot" / "skills"],
-        "user": [Path.home() / ".copilot" / "skills"],
-    }),
-    ("enable_codex", CodexSkillsProvider, {
-        "workspace": [Path.cwd() / ".codex" / "skills"],
-        # /etc/codex/skills is system-managed, grouped under "user" scope
-        "user": [Path("/etc/codex/skills"), Path.home() / ".codex" / "skills"],
-    }),
-    ("enable_gemini", GeminiSkillsProvider, {
-        "workspace": [Path.cwd() / ".gemini" / "skills"],
-        "user": [Path.home() / ".gemini" / "skills"],
-    }),
-    ("enable_goose", GooseSkillsProvider, {
-        "workspace": [Path.cwd() / ".goose" / "skills"],
-        "user": [Path.home() / ".config" / "agents" / "skills"],
-    }),
-    ("enable_copilot", CopilotSkillsProvider, {
-        "workspace": [Path.cwd() / ".copilot" / "skills"],
-        "user": [Path.home() / ".copilot" / "skills"],
-    }),
-    ("enable_opencode", OpenCodeSkillsProvider, {
-        "workspace": [Path.cwd() / ".opencode" / "skills"],
-        "user": [Path.home() / ".config" / "opencode" / "skills"],
-    }),
-    ("enable_agents", SkillsDirectoryProvider, {
-        "workspace": [Path.cwd() / ".agents" / "skills"],
-        "user": [Path.home() / ".agents" / "skills"],
-    }),
-    ("enable_openclaw", SkillsDirectoryProvider, {
-        "workspace": [Path.cwd() / ".openclaw" / "skills"],
-        "user": [Path.home() / ".openclaw" / "skills"],
-    }),
+_PROVIDER_ROOTS: list[
+    tuple[
+        str,  # settings attribute name
+        type,  # provider class
+        dict[Literal["workspace", "user"], list[Path]],
+    ]
+] = [
+    (
+        "enable_claude",
+        ClaudeSkillsProvider,
+        {
+            "workspace": [Path.cwd() / ".claude" / "skills"],
+            "user": [Path.home() / ".claude" / "skills"],
+        },
+    ),
+    (
+        "enable_cursor",
+        CursorSkillsProvider,
+        {
+            "workspace": [Path.cwd() / ".cursor" / "skills"],
+            "user": [Path.home() / ".cursor" / "skills"],
+        },
+    ),
+    (
+        "enable_vscode",
+        VSCodeSkillsProvider,
+        {
+            "workspace": [Path.cwd() / ".copilot" / "skills"],
+            "user": [Path.home() / ".copilot" / "skills"],
+        },
+    ),
+    (
+        "enable_codex",
+        CodexSkillsProvider,
+        {
+            "workspace": [Path.cwd() / ".codex" / "skills"],
+            # /etc/codex/skills is system-managed, grouped under "user" scope
+            "user": [Path("/etc/codex/skills"), Path.home() / ".codex" / "skills"],
+        },
+    ),
+    (
+        "enable_gemini",
+        GeminiSkillsProvider,
+        {
+            "workspace": [Path.cwd() / ".gemini" / "skills"],
+            "user": [Path.home() / ".gemini" / "skills"],
+        },
+    ),
+    (
+        "enable_goose",
+        GooseSkillsProvider,
+        {
+            "workspace": [Path.cwd() / ".goose" / "skills"],
+            "user": [Path.home() / ".config" / "agents" / "skills"],
+        },
+    ),
+    (
+        "enable_copilot",
+        CopilotSkillsProvider,
+        {
+            "workspace": [Path.cwd() / ".copilot" / "skills"],
+            "user": [Path.home() / ".copilot" / "skills"],
+        },
+    ),
+    (
+        "enable_opencode",
+        OpenCodeSkillsProvider,
+        {
+            "workspace": [Path.cwd() / ".opencode" / "skills"],
+            "user": [Path.home() / ".config" / "opencode" / "skills"],
+        },
+    ),
+    (
+        "enable_agents",
+        SkillsDirectoryProvider,
+        {
+            "workspace": [Path.cwd() / ".agents" / "skills"],
+            "user": [Path.home() / ".agents" / "skills"],
+        },
+    ),
+    (
+        "enable_openclaw",
+        SkillsDirectoryProvider,
+        {
+            "workspace": [Path.cwd() / ".openclaw" / "skills"],
+            "user": [Path.home() / ".openclaw" / "skills"],
+        },
+    ),
 ]
 
 
@@ -118,8 +160,7 @@ def build_mcp(settings: Settings | None = None) -> FastMCP:
         if save_to_user_level:
             output_dir = Path.home() / ".agents" / "skills"
             scope_note = (
-                f"Save the finished skill to `{output_dir}/<skill-name>/` "
-                f"so it is available across **all workspaces**."
+                f"Save the finished skill to `{output_dir}/<skill-name>/` so it is available across **all workspaces**."
             )
         else:
             output_dir = Path.cwd() / ".agents" / "skills"
@@ -160,7 +201,7 @@ def build_mcp(settings: Settings | None = None) -> FastMCP:
         # only when all their roots survived the filter — otherwise fall back to
         # SkillsDirectoryProvider with just the allowed subset.
         all_roots = roots_by_level.get("workspace", []) + roots_by_level.get("user", [])
-        if provider_cls is not SkillsDirectoryProvider and set(roots) == set(r for r in all_roots if r.exists()):
+        if provider_cls is not SkillsDirectoryProvider and set(roots) == {r for r in all_roots if r.exists()}:
             mcp.add_provider(provider_cls(supporting_files="resources"))
         else:
             mcp.add_provider(SkillsDirectoryProvider(roots=roots, supporting_files="resources"))

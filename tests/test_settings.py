@@ -1,7 +1,5 @@
 """Tests for Settings — env var parsing, defaults, and validation."""
 
-import pytest
-
 from agent_skill_router.settings import ExtraDirectory, Settings
 
 

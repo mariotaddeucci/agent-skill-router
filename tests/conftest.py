@@ -30,9 +30,7 @@ def skill_dir(tmp_path):
     """Create a minimal valid skill directory with a SKILL.md file."""
     skill = tmp_path / "my-skill"
     skill.mkdir()
-    (skill / "SKILL.md").write_text(
-        "---\ndescription: Test skill\n---\n# My Skill\nDoes something useful.\n"
-    )
+    (skill / "SKILL.md").write_text("---\ndescription: Test skill\n---\n# My Skill\nDoes something useful.\n")
     return tmp_path
 
 
@@ -41,9 +39,7 @@ def skill_dir_with_assets(tmp_path):
     """Create a skill directory that also has supporting files."""
     skill = tmp_path / "rich-skill"
     skill.mkdir()
-    (skill / "SKILL.md").write_text(
-        "---\ndescription: Rich skill\n---\n# Rich Skill\nSee reference.md.\n"
-    )
+    (skill / "SKILL.md").write_text("---\ndescription: Rich skill\n---\n# Rich Skill\nSee reference.md.\n")
     (skill / "reference.md").write_text("# Reference\nExtra content.\n")
     sub = skill / "examples"
     sub.mkdir()

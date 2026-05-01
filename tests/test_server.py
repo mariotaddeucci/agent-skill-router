@@ -1,11 +1,9 @@
 """Tests for build_mcp — provider registration, scope flags, bundled skills, extra dirs."""
 
-import pytest
 from fastmcp import Client
 
 from agent_skill_router.server import _BUNDLED_SKILLS_PATH, _resolve_roots, build_mcp
-from agent_skill_router.settings import ExtraDirectory, Settings
-
+from agent_skill_router.settings import ExtraDirectory
 
 # ---------------------------------------------------------------------------
 # _resolve_roots unit tests (pure, no I/O)
@@ -64,6 +62,7 @@ def test_resolve_roots_both_disabled(tmp_path):
 
 def test_build_mcp_returns_fastmcp_instance(all_disabled_settings):
     from fastmcp import FastMCP
+
     mcp = build_mcp(all_disabled_settings)
     assert isinstance(mcp, FastMCP)
     assert mcp.name == "Agent Skill Router"
@@ -73,6 +72,7 @@ def test_build_mcp_uses_default_settings_when_none():
     # Should not raise even when no settings provided
     mcp = build_mcp(None)
     from fastmcp import FastMCP
+
     assert isinstance(mcp, FastMCP)
 
 
@@ -121,9 +121,7 @@ async def test_bundled_skills_disabled_exposes_no_resources(all_disabled_setting
 
 
 async def test_extra_dir_skill_is_exposed(all_disabled_settings, skill_dir):
-    settings = all_disabled_settings.model_copy(
-        update={"extra_dirs": [ExtraDirectory(path=skill_dir)]}
-    )
+    settings = all_disabled_settings.model_copy(update={"extra_dirs": [ExtraDirectory(path=skill_dir)]})
     mcp = build_mcp(settings)
     async with Client(mcp) as client:
         resources = await client.list_resources()
@@ -133,9 +131,7 @@ async def test_extra_dir_skill_is_exposed(all_disabled_settings, skill_dir):
 
 async def test_extra_dir_nonexistent_is_silently_skipped(all_disabled_settings, tmp_path):
     missing = tmp_path / "does-not-exist"
-    settings = all_disabled_settings.model_copy(
-        update={"extra_dirs": [ExtraDirectory(path=missing)]}
-    )
+    settings = all_disabled_settings.model_copy(update={"extra_dirs": [ExtraDirectory(path=missing)]})
     mcp = build_mcp(settings)
     async with Client(mcp) as client:
         resources = await client.list_resources()
@@ -143,9 +139,7 @@ async def test_extra_dir_nonexistent_is_silently_skipped(all_disabled_settings, 
 
 
 async def test_extra_dir_supporting_files_are_listed(all_disabled_settings, skill_dir_with_assets):
-    settings = all_disabled_settings.model_copy(
-        update={"extra_dirs": [ExtraDirectory(path=skill_dir_with_assets)]}
-    )
+    settings = all_disabled_settings.model_copy(update={"extra_dirs": [ExtraDirectory(path=skill_dir_with_assets)]})
     mcp = build_mcp(settings)
     async with Client(mcp) as client:
         resources = await client.list_resources()
@@ -165,29 +159,35 @@ async def test_agents_provider_workspace_root_used(all_disabled_settings, tmp_pa
     skill.mkdir(parents=True)
     (skill / "SKILL.md").write_text("---\ndescription: ws\n---\n# WS\n")
 
-    settings = all_disabled_settings.model_copy(update={
-        "enable_agents": True,
-        "enable_workspace_level": True,
-        "enable_user_level": False,
-    })
+    settings = all_disabled_settings.model_copy(
+        update={
+            "enable_agents": True,
+            "enable_workspace_level": True,
+            "enable_user_level": False,
+        }
+    )
 
     # Patch cwd so the provider sees our tmp workspace
     import agent_skill_router.server as srv
+
     original = srv._PROVIDER_ROOTS
 
-    from pathlib import Path
-    from typing import Literal
     from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
     patched = [
-        (attr, cls, roots) if attr != "enable_agents" else
-        ("enable_agents", SkillsDirectoryProvider, {
-            "workspace": [agents_ws],
-            "user": [tmp_path / ".agents" / "user-skills"],  # doesn't exist
-        })
+        (attr, cls, roots)
+        if attr != "enable_agents"
+        else (
+            "enable_agents",
+            SkillsDirectoryProvider,
+            {
+                "workspace": [agents_ws],
+                "user": [tmp_path / ".agents" / "user-skills"],  # doesn't exist
+            },
+        )
         for attr, cls, roots in original
     ]
-    srv._PROVIDER_ROOTS = patched
+    srv._PROVIDER_ROOTS = patched  # type: ignore[assignment]
     try:
         mcp = build_mcp(settings)
         async with Client(mcp) as client:
@@ -195,7 +195,7 @@ async def test_agents_provider_workspace_root_used(all_disabled_settings, tmp_pa
             uris = [str(r.uri) for r in resources]
             assert any("ws-skill" in u for u in uris)
     finally:
-        srv._PROVIDER_ROOTS = original
+        srv._PROVIDER_ROOTS = original  # type: ignore[assignment]
 
 
 async def test_agents_provider_user_root_used(all_disabled_settings, tmp_path):
@@ -204,25 +204,33 @@ async def test_agents_provider_user_root_used(all_disabled_settings, tmp_path):
     skill.mkdir(parents=True)
     (skill / "SKILL.md").write_text("---\ndescription: user\n---\n# User\n")
 
-    settings = all_disabled_settings.model_copy(update={
-        "enable_agents": True,
-        "enable_workspace_level": False,
-        "enable_user_level": True,
-    })
+    settings = all_disabled_settings.model_copy(
+        update={
+            "enable_agents": True,
+            "enable_workspace_level": False,
+            "enable_user_level": True,
+        }
+    )
+
+    from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
     import agent_skill_router.server as srv
-    from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
     original = srv._PROVIDER_ROOTS
     patched = [
-        (attr, cls, roots) if attr != "enable_agents" else
-        ("enable_agents", SkillsDirectoryProvider, {
-            "workspace": [tmp_path / ".agents" / "ws-skills"],  # doesn't exist
-            "user": [agents_user],
-        })
+        (attr, cls, roots)
+        if attr != "enable_agents"
+        else (
+            "enable_agents",
+            SkillsDirectoryProvider,
+            {
+                "workspace": [tmp_path / ".agents" / "ws-skills"],  # doesn't exist
+                "user": [agents_user],
+            },
+        )
         for attr, cls, roots in original
     ]
-    srv._PROVIDER_ROOTS = patched
+    srv._PROVIDER_ROOTS = patched  # type: ignore[assignment]
     try:
         mcp = build_mcp(settings)
         async with Client(mcp) as client:
@@ -230,7 +238,7 @@ async def test_agents_provider_user_root_used(all_disabled_settings, tmp_path):
             uris = [str(r.uri) for r in resources]
             assert any("user-skill" in u for u in uris)
     finally:
-        srv._PROVIDER_ROOTS = original
+        srv._PROVIDER_ROOTS = original  # type: ignore[assignment]
 
 
 async def test_agents_provider_disabled_exposes_nothing(all_disabled_settings):
@@ -251,21 +259,25 @@ async def test_openclaw_provider_exposes_skills(all_disabled_settings, tmp_path)
     skill.mkdir(parents=True)
     (skill / "SKILL.md").write_text("---\ndescription: claw\n---\n# Claw\n")
 
-    settings = all_disabled_settings.model_copy(update={
-        "enable_openclaw": True,
-        "enable_user_level": True,
-    })
+    settings = all_disabled_settings.model_copy(
+        update={
+            "enable_openclaw": True,
+            "enable_user_level": True,
+        }
+    )
+
+    from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
     import agent_skill_router.server as srv
-    from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
     original = srv._PROVIDER_ROOTS
     patched = [
-        (attr, cls, roots) if attr != "enable_openclaw" else
-        ("enable_openclaw", SkillsDirectoryProvider, {"user": [openclaw]})
+        (attr, cls, roots)
+        if attr != "enable_openclaw"
+        else ("enable_openclaw", SkillsDirectoryProvider, {"user": [openclaw]})
         for attr, cls, roots in original
     ]
-    srv._PROVIDER_ROOTS = patched
+    srv._PROVIDER_ROOTS = patched  # type: ignore[assignment]
     try:
         mcp = build_mcp(settings)
         async with Client(mcp) as client:
@@ -273,4 +285,4 @@ async def test_openclaw_provider_exposes_skills(all_disabled_settings, tmp_path)
             uris = [str(r.uri) for r in resources]
             assert any("claw-skill" in u for u in uris)
     finally:
-        srv._PROVIDER_ROOTS = original
+        srv._PROVIDER_ROOTS = original  # type: ignore[assignment]

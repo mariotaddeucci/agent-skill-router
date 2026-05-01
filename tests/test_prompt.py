@@ -2,11 +2,9 @@
 
 from pathlib import Path
 
-import pytest
 from fastmcp import Client
 
 from agent_skill_router.server import build_mcp
-from agent_skill_router.settings import Settings
 
 
 async def _get_prompt_text(mcp, goal: str, save_to_user_level: bool = False) -> str:
@@ -15,7 +13,9 @@ async def _get_prompt_text(mcp, goal: str, save_to_user_level: bool = False) -> 
             "create-skill",
             {"goal": goal, "save_to_user_level": save_to_user_level},
         )
-        return result.messages[0].content.text
+        content = result.messages[0].content
+        assert hasattr(content, "text"), f"Expected TextContent, got {type(content)}"
+        return content.text  # type: ignore[union-attr]
 
 
 # ---------------------------------------------------------------------------
@@ -118,9 +118,7 @@ async def test_prompt_user_level_creates_directory(all_disabled_settings, tmp_pa
 # ---------------------------------------------------------------------------
 
 
-async def test_prompt_workspace_and_user_level_create_different_dirs(
-    all_disabled_settings, tmp_path, monkeypatch
-):
+async def test_prompt_workspace_and_user_level_create_different_dirs(all_disabled_settings, tmp_path, monkeypatch):
     fake_home = tmp_path / "fake_home"
     fake_home.mkdir()
     monkeypatch.chdir(tmp_path)

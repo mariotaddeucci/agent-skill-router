@@ -8,4 +8,4 @@ def main() -> None:
     mcp.run()
 
 
-__all__ = ["main", "build_mcp", "Settings"]
+__all__ = ["Settings", "build_mcp", "main"]
