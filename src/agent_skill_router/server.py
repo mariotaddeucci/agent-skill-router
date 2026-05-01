@@ -30,28 +30,36 @@ _PROVIDER_ROOTS: list[tuple[
     dict[Literal["workspace", "user"], list[Path]],
 ]] = [
     ("enable_claude", ClaudeSkillsProvider, {
+        "workspace": [Path.cwd() / ".claude" / "skills"],
         "user": [Path.home() / ".claude" / "skills"],
     }),
     ("enable_cursor", CursorSkillsProvider, {
+        "workspace": [Path.cwd() / ".cursor" / "skills"],
         "user": [Path.home() / ".cursor" / "skills"],
     }),
     ("enable_vscode", VSCodeSkillsProvider, {
+        "workspace": [Path.cwd() / ".copilot" / "skills"],
         "user": [Path.home() / ".copilot" / "skills"],
     }),
     ("enable_codex", CodexSkillsProvider, {
+        "workspace": [Path.cwd() / ".codex" / "skills"],
         # /etc/codex/skills is system-managed, grouped under "user" scope
         "user": [Path("/etc/codex/skills"), Path.home() / ".codex" / "skills"],
     }),
     ("enable_gemini", GeminiSkillsProvider, {
+        "workspace": [Path.cwd() / ".gemini" / "skills"],
         "user": [Path.home() / ".gemini" / "skills"],
     }),
     ("enable_goose", GooseSkillsProvider, {
+        "workspace": [Path.cwd() / ".goose" / "skills"],
         "user": [Path.home() / ".config" / "agents" / "skills"],
     }),
     ("enable_copilot", CopilotSkillsProvider, {
+        "workspace": [Path.cwd() / ".copilot" / "skills"],
         "user": [Path.home() / ".copilot" / "skills"],
     }),
     ("enable_opencode", OpenCodeSkillsProvider, {
+        "workspace": [Path.cwd() / ".opencode" / "skills"],
         "user": [Path.home() / ".config" / "opencode" / "skills"],
     }),
     ("enable_agents", SkillsDirectoryProvider, {
@@ -59,6 +67,7 @@ _PROVIDER_ROOTS: list[tuple[
         "user": [Path.home() / ".agents" / "skills"],
     }),
     ("enable_openclaw", SkillsDirectoryProvider, {
+        "workspace": [Path.cwd() / ".openclaw" / "skills"],
         "user": [Path.home() / ".openclaw" / "skills"],
     }),
 ]

@@ -201,23 +201,24 @@ Follow the MCP install [guide](https://github.com/google-gemini/gemini-cli/blob/
 
 ### Skill directories discovered
 
-The server automatically scans the following directories (only those that exist are loaded):
+The server automatically scans the following directories (only those that exist on disk are loaded):
 
-| Provider | Scope | Path |
-|----------|-------|------|
-| Claude | user | `~/.claude/skills/` |
-| Cursor | user | `~/.cursor/skills/` |
-| VS Code / Copilot | user | `~/.copilot/skills/` |
-| Codex | user | `/etc/codex/skills/`, `~/.codex/skills/` |
-| Gemini | user | `~/.gemini/skills/` |
-| Goose | user | `~/.config/agents/skills/` |
-| OpenCode | user | `~/.config/opencode/skills/` |
-| Generic agents | workspace | `<cwd>/.agents/skills/` |
-| Generic agents | user | `~/.agents/skills/` |
-| OpenClaw | user | `~/.openclaw/skills/` |
+| Provider | Workspace path | User path |
+|----------|---------------|-----------|
+| Claude | `.claude/skills/` | `~/.claude/skills/` |
+| Cursor | `.cursor/skills/` | `~/.cursor/skills/` |
+| VS Code / Copilot | `.copilot/skills/` | `~/.copilot/skills/` |
+| Codex | `.codex/skills/` | `/etc/codex/skills/`, `~/.codex/skills/` |
+| Gemini | `.gemini/skills/` | `~/.gemini/skills/` |
+| Goose | `.goose/skills/` | `~/.config/agents/skills/` |
+| OpenCode | `.opencode/skills/` | `~/.config/opencode/skills/` |
+| Generic agents | `.agents/skills/` | `~/.agents/skills/` |
+| OpenClaw | `.openclaw/skills/` | `~/.openclaw/skills/` |
 | Bundled | — | shipped inside the package |
 
 All providers use the same `SKILL.md` format — no conversion needed.
+
+Workspace paths are relative to the current working directory (`<cwd>/...`). Both scopes are enabled by default and can be toggled independently via `SKILL_ROUTER_ENABLE_WORKSPACE_LEVEL` and `SKILL_ROUTER_ENABLE_USER_LEVEL`.
 
 ### Configuration
 
