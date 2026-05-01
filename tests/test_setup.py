@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
-from agent_skill_router.agents import AGENT_PROVIDERS, GitHubCopilotSetupProvider
+from agent_skill_router.agents import AGENT_PROVIDERS, GeminiSetupProvider, GitHubCopilotSetupProvider
 from agent_skill_router.agents._base import _DEFAULT_MCP_CONFIG, McpConfig
 from agent_skill_router.cli import app
 
@@ -40,7 +40,7 @@ def test_stub_providers_have_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPat
 
 def test_stub_providers_raise_on_discover() -> None:
     for name, provider in AGENT_PROVIDERS.items():
-        if name == "github-copilot":
+        if name in {"github-copilot", "gemini"}:
             continue
         with pytest.raises(NotImplementedError):
             provider.discover()
@@ -48,7 +48,7 @@ def test_stub_providers_raise_on_discover() -> None:
 
 def test_stub_providers_raise_on_install(tmp_path: Path) -> None:
     for name, provider in AGENT_PROVIDERS.items():
-        if name == "github-copilot":
+        if name in {"github-copilot", "gemini"}:
             continue
         with pytest.raises(NotImplementedError):
             provider.install(tmp_path / "config.json")
@@ -141,6 +141,72 @@ class TestGitHubCopilotSetupProvider:
         config = tmp_path / "deep" / "nested" / "mcp.json"
         self.provider.install(config)
         assert config.exists()
+
+
+class TestGeminiSetupProvider:
+    def setup_method(self) -> None:
+        self.provider = GeminiSetupProvider()
+
+    def test_discover_returns_empty_when_no_config_exists(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path / "home"))
+        assert self.provider.discover() == []
+
+    def test_discover_returns_existing_paths(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path / "home"))
+
+        ws = tmp_path / ".gemini" / "settings.json"
+        ws.parent.mkdir(parents=True)
+        ws.write_text("{}\n")
+        assert self.provider.discover() == [ws]
+
+        usr = tmp_path / "home" / ".gemini" / "settings.json"
+        usr.parent.mkdir(parents=True)
+        usr.write_text("{}\n")
+        assert set(self.provider.discover()) == {ws, usr}
+
+    def test_install_creates_new_config(self, tmp_path: Path) -> None:
+        config = tmp_path / ".gemini" / "settings.json"
+        self.provider.install(config)
+
+        data = json.loads(config.read_text())
+        entry = data["mcpServers"]["agent-skill-router"]
+        assert entry["command"] == _DEFAULT_MCP_CONFIG.command
+        assert entry["args"] == _DEFAULT_MCP_CONFIG.args
+        assert "type" not in entry
+
+    def test_install_merges_existing_config(self, tmp_path: Path) -> None:
+        config = tmp_path / ".gemini" / "settings.json"
+        config.parent.mkdir(parents=True)
+        config.write_text(json.dumps({"mcpServers": {"other": {}}}))
+
+        self.provider.install(config)
+
+        data = json.loads(config.read_text())
+        assert "other" in data["mcpServers"]
+        assert "agent-skill-router" in data["mcpServers"]
+
+    def test_install_preserves_other_settings(self, tmp_path: Path) -> None:
+        config = tmp_path / ".gemini" / "settings.json"
+        config.parent.mkdir(parents=True)
+        config.write_text(json.dumps({"theme": "dark", "mcpServers": {}}))
+
+        self.provider.install(config)
+
+        data = json.loads(config.read_text())
+        assert data["theme"] == "dark"
+        assert "agent-skill-router" in data["mcpServers"]
+
+    def test_install_is_idempotent(self, tmp_path: Path) -> None:
+        config = tmp_path / ".gemini" / "settings.json"
+        self.provider.install(config)
+        self.provider.install(config)
+
+        data = json.loads(config.read_text())
+        assert len(data["mcpServers"]) == 1
 
 
 class TestSetupCommand:
