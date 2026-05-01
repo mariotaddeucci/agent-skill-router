@@ -4,9 +4,10 @@ An MCP server that discovers, aggregates, and standardizes reusable agent skills
 
 ### Key Features
 
-- **Zero-config skill sharing.** Drop a `SKILL.md` file in any supported directory and every connected agent sees it immediately.
-- **Multi-vendor.** Reads skills from Claude, Cursor, VS Code Copilot, Codex, Gemini, Goose, OpenCode, and generic `.agents/skills/` directories.
-- **Workspace + user scope.** Separate flags to include project-local skills and user-global skills independently.
+- **Skill sharing via MCP.** Drop a `SKILL.md` in any supported directory and every connected agent sees it immediately as an MCP resource.
+- **Slash command sharing across agents.** Native slash commands/prompts/tasks written for one agent (e.g. Copilot) are read and made available to every other agent — formats are converted automatically.
+- **Multi-vendor.** Reads skills and commands from Claude, Cursor, VS Code Copilot, Codex, Gemini, Goose, OpenCode, and generic `.agents/skills/` directories.
+- **Workspace + user scope.** Separate flags to include project-local and user-global content independently.
 - **Bundled skill creator.** Ships a `skill-creator` skill and a `create-skill` prompt so agents can author new skills on demand.
 - **Fully configurable.** All providers and scopes are toggled via environment variables (`SKILL_ROUTER_*`).
 
@@ -258,6 +259,22 @@ uvx --from git+https://github.com/mariotaddeucci/agent-skill-router agent-skill-
 
 Extra directories are always loaded regardless of the workspace/user scope flags.
 
+### Slash command sharing
+
+Each agent stores its commands/prompts/tasks in its own native format on disk. Agent Skill Router reads those files and makes them available across all other agents — no rewriting needed.
+
+| Agent | Native slash command location |
+|-------|-------------------------------|
+| Claude Code | `.claude/commands/*.md` |
+| GitHub Copilot | `.github/prompts/*.prompt.md` |
+| Cursor | `.cursor/rules/*.mdc` |
+| OpenCode | `.opencode/commands/*.md` |
+| Gemini CLI | `.gemini/commands/*.toml` |
+| Codex | `.codex/prompts/*.md` |
+| Goose | `.goose/recipes/*.yaml` |
+
+A `/review-code` command written natively for Copilot becomes accessible in Claude, Cursor, and the rest — formats are converted automatically. Slash command sharing and skill sharing are independent features.
+
 ### Prompts
 
 The server exposes a `create-skill` prompt that helps any connected agent author a new skill:
@@ -305,11 +322,13 @@ agent-skill-router run
 
 ### What is a skill?
 
-A skill is a directory containing a `SKILL.md` file with structured instructions that an AI assistant loads to perform a specific task consistently. Think of it as a reusable playbook — once written, every agent that connects to this MCP server can use it.
+A skill is a directory containing a `SKILL.md` file with structured instructions that an AI assistant loads to perform a specific task consistently. The MCP server exposes each skill as an MCP resource and prompt, making it available to every connected agent.
 
 ```
 .agents/skills/
 └── my-skill/
-    └── SKILL.md      ← instructions the agent follows
-    └── template.py   ← optional supporting files (also exposed as resources)
+    └── SKILL.md      ← instructions exposed via MCP to all connected agents
+    └── template.py   ← optional supporting files (also exposed as MCP resources)
 ```
+
+Skills are vendor-neutral: written once in `SKILL.md`, shared with all agents through MCP. They are separate from slash commands — a skill is an MCP resource, not a native agent command file.

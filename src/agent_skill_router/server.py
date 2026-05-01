@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from pathlib import Path
 from typing import Literal
 
@@ -14,6 +15,8 @@ from fastmcp.server.providers.skills import (
     VSCodeSkillsProvider,
 )
 
+from agent_skill_router.agents import AGENT_PROVIDERS
+from agent_skill_router.agents._base import PromptSlashCommand
 from agent_skill_router.settings import Settings
 
 # Skills bundled inside this package — resolved relative to this file, works
@@ -113,6 +116,15 @@ _PROVIDER_ROOTS: list[
         },
     ),
 ]
+
+
+def _static_prompt(body: str) -> Callable[[], str]:
+    """Return a no-argument function that yields *body* as an MCP prompt."""
+
+    def _fn() -> str:
+        return body
+
+    return _fn
 
 
 def _resolve_roots(
@@ -215,5 +227,19 @@ def build_mcp(settings: Settings | None = None) -> FastMCP:
         if not extra.path.exists():
             continue
         mcp.add_provider(SkillsDirectoryProvider(roots=[extra.path], supporting_files="resources"))
+
+    # --- Slash commands from agent native prompt files (cross-agent sharing) ---
+    # Reads each agent's native command format and registers them as MCP prompts.
+    # First provider to define a name wins; "create-skill" is reserved.
+    seen_prompt_names: set[str] = {"create-skill"}
+    for provider in AGENT_PROVIDERS.values():
+        for cmd in provider.list_prompts():
+            if not isinstance(cmd, PromptSlashCommand):
+                continue
+            cmd_name = cmd.name.lstrip("/")
+            if cmd_name in seen_prompt_names:
+                continue
+            seen_prompt_names.add(cmd_name)
+            mcp.prompt(name=cmd_name, description=cmd.description)(_static_prompt(cmd.prompt))
 
     return mcp
