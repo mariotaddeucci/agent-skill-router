@@ -1,0 +1,3 @@
+[mcp_servers.existing-tool]
+command = "existing"
+args = []

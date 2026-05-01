@@ -1,0 +1,2 @@
+description = "Refactor selected code into a pure function without side effects"
+prompt = "Please refactor the provided code into a pure function. Remove all side effects and make it deterministic."

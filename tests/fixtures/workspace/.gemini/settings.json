@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "existing-tool": {
+      "command": "existing",
+      "args": []
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "existing-tool": {
+      "type": "stdio",
+      "command": "existing",
+      "args": []
+    }
+  }
+}

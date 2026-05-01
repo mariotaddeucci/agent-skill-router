@@ -1,0 +1,2 @@
+description = "Create a conventional commit message for staged changes"
+prompt = "Create a conventional commit message following the Conventional Commits specification for the staged changes."

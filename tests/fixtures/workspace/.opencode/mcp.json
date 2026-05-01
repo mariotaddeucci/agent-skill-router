@@ -1,0 +1,9 @@
+{
+  "mcp": {
+    "existing-tool": {
+      "type": "local",
+      "command": ["existing"],
+      "enabled": true
+    }
+  }
+}

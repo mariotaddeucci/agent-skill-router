@@ -1,0 +1,7 @@
+version: "1.0.0"
+title: daily-standup
+description: Generate a daily standup summary from recent git activity
+instructions: |
+  Analyze recent git commits and open pull requests.
+  Generate a concise standup report covering what was done,
+  what is in progress, and any blockers.

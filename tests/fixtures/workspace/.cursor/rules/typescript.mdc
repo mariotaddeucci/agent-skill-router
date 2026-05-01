@@ -1,0 +1,8 @@
+---
+description: TypeScript coding conventions for this project
+globs: src/**/*.ts
+alwaysApply: false
+---
+Use strict TypeScript conventions.
+Always define explicit return types for functions.
+Prefer interfaces over type aliases for object shapes.
