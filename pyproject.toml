@@ -1,0 +1,69 @@
+[project]
+name = "agent-skill-router"
+version = "0.1.0"
+description = "MCP server that discovers and aggregates reusable agent skills across projects and AI providers (Claude, Cursor, Copilot, Gemini, Goose, OpenCode and more)"
+readme = "README.md"
+authors = [
+    { name = "Mario Taddeucci", email = "mariotaddeucci@gmx.com" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.13"
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "agent",
+    "skills",
+    "ai",
+    "llm",
+    "claude",
+    "cursor",
+    "copilot",
+    "gemini",
+    "goose",
+    "opencode",
+    "codex",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "fastmcp>=3.2.4",
+    "pydantic-settings>=2.14.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/mariotaddeucci/agent-skill-router"
+Repository = "https://github.com/mariotaddeucci/agent-skill-router"
+Issues = "https://github.com/mariotaddeucci/agent-skill-router/issues"
+
+[project.scripts]
+agent-skill-router = "agent_skill_router:main"
+
+[build-system]
+requires = ["uv_build>=0.11.0,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.1.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["agent_skill_router"]
+omit = ["*/skills/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
