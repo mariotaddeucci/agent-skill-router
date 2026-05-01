@@ -1,11 +1,11 @@
+from .cli import app
 from .server import build_mcp
 from .settings import Settings
 
 
 def main() -> None:
-    settings = Settings()
-    mcp = build_mcp(settings)
-    mcp.run()
+    """Entry point: delegates to the Typer CLI app."""
+    app()
 
 
-__all__ = ["Settings", "build_mcp", "main"]
+__all__ = ["Settings", "app", "build_mcp", "main"]

@@ -35,6 +35,7 @@ classifiers = [
 dependencies = [
     "fastmcp>=3.2.4,<4",
     "pydantic-settings>=2.14.0,<3",
+    "typer>=0.15.0,<1",
 ]
 
 [project.urls]
@@ -43,7 +44,7 @@ Repository = "https://github.com/mariotaddeucci/agent-skill-router"
 Issues = "https://github.com/mariotaddeucci/agent-skill-router/issues"
 
 [project.scripts]
-agent-skill-router = "agent_skill_router:main"
+agent-skill-router = "agent_skill_router.cli:app"
 
 [build-system]
 requires = ["uv_build>=0.11.0,<0.12.0"]

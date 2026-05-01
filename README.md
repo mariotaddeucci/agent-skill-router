@@ -266,6 +266,43 @@ The server exposes a `create-skill` prompt that helps any connected agent author
 
 The bundled `skill-creator` skill is automatically available to guide the agent through the skill-authoring process.
 
+### CLI
+
+The package ships a CLI for managing skills and starting the server without writing any config.
+
+**List all skills the server would load:**
+
+```bash
+uvx --from git+https://github.com/mariotaddeucci/agent-skill-router agent-skill-router list
+```
+
+Filter by scope:
+
+```bash
+agent-skill-router list --workspace   # workspace-scoped skills only
+agent-skill-router list --user        # user-scoped skills only
+```
+
+**Install a skill into your project:**
+
+```bash
+agent-skill-router install ./path/to/my-skill
+```
+
+Installs to `.agents/skills/` in the current directory. Use `--user` to install globally (`~/.agents/skills/`):
+
+```bash
+agent-skill-router install ./path/to/my-skill --user
+```
+
+Use `--force` / `-f` to overwrite an existing skill with the same name.
+
+**Start the MCP server directly:**
+
+```bash
+agent-skill-router run
+```
+
 ### What is a skill?
 
 A skill is a directory containing a `SKILL.md` file with structured instructions that an AI assistant loads to perform a specific task consistently. Think of it as a reusable playbook — once written, every agent that connects to this MCP server can use it.
