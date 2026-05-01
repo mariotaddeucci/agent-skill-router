@@ -1,4 +1,4 @@
-"""CLI for agent-skill-router: list, install, run, and setup commands."""
+"""CLI for agent-skill-router: list, install, run, and setup-mcp commands."""
 
 from pathlib import Path
 from typing import Annotated
@@ -40,10 +40,19 @@ def _all_roots(settings: Settings) -> list[Path]:
 
 @app.command()
 def list(
-    user: Annotated[bool, typer.Option("--user", help="Show user-level skills only.")] = False,
-    workspace: Annotated[bool, typer.Option("--workspace", help="Show workspace-level skills only.")] = False,
+    user: Annotated[
+        bool, typer.Option("--user", help="Show only user-level skills (~/.agents/skills/ and equivalents).")
+    ] = False,
+    workspace: Annotated[
+        bool, typer.Option("--workspace", help="Show only workspace-level skills (.agents/skills/ and equivalents).")
+    ] = False,
 ) -> None:
-    """List all skills accessible to the MCP server."""
+    """List all skills accessible to the MCP server.
+
+    Discovers skills from every enabled provider root (workspace and/or user level)
+    and prints a table with each skill's name, directory, and description.
+    Use --user or --workspace to restrict the scope.
+    """
     settings = Settings(
         enable_workspace_level=not user if (user or workspace) else True,
         enable_user_level=not workspace if (user or workspace) else True,
@@ -68,14 +77,26 @@ def list(
 
 @app.command()
 def install(
-    source: Annotated[Path, typer.Argument(help="Path to the skill directory to install.")],
+    source: Annotated[
+        Path, typer.Argument(help="Path to the skill directory to install. Must contain a SKILL.md file.")
+    ],
     user: Annotated[
         bool,
-        typer.Option("--user", help="Install to ~/.agents/skills/ (global). Default: .agents/skills/ in cwd."),
+        typer.Option(
+            "--user",
+            help="Install to ~/.agents/skills/ (available across all workspaces). Default: .agents/skills/ in the current directory.",
+        ),
     ] = False,
-    force: Annotated[bool, typer.Option("--force", "-f", help="Overwrite if skill already exists.")] = False,
+    force: Annotated[
+        bool, typer.Option("--force", "-f", help="Overwrite the skill if it already exists at the destination.")
+    ] = False,
 ) -> None:
-    """Install a skill into the local or user-level skills directory."""
+    """Install a skill into the local or user-level skills directory.
+
+    Copies the skill directory into .agents/skills/ (workspace) or
+    ~/.agents/skills/ (user, with --user). The destination is created
+    automatically if it does not exist. Use --force to replace an existing skill.
+    """
     dest_root = Path.home() / ".agents" / "skills" if user else Path.cwd() / ".agents" / "skills"
 
     source = source.resolve()
@@ -109,7 +130,11 @@ def install(
 
 @app.command()
 def run() -> None:
-    """Start the Agent Skill Router MCP server."""
+    """Start the Agent Skill Router MCP server.
+
+    Reads configuration from SKILL_ROUTER_* environment variables and starts
+    the MCP server over stdio, making all discovered skills available to connected agents.
+    """
     from agent_skill_router.server import build_mcp
 
     settings = Settings()
@@ -117,7 +142,7 @@ def run() -> None:
     mcp.run()
 
 
-@app.command()
+@app.command(name="setup-mcp")
 def setup(
     agent: Annotated[
         str | None,
@@ -136,8 +161,12 @@ def setup(
 ) -> None:
     """Add the Agent Skill Router MCP server to an agent's config.
 
-    When --agent is omitted, each provider that supports auto-discovery is
-    queried; all detected config files are updated automatically.
+    When AGENT is provided, configures only that agent. When omitted, each
+    provider that supports auto-discovery is queried and all detected config
+    files are updated automatically.
+
+    Use --user to write to the user-level config file (applies across all
+    workspaces) instead of the workspace-local one.
     """
     if agent is not None:
         provider = AGENT_PROVIDERS.get(agent)
@@ -178,7 +207,7 @@ def setup(
     if not installed_any:
         typer.echo(
             "No agents with automated setup were found.\n"
-            f"Run with a specific agent: agent-skill-router setup --agent <name>\n"
+            f"Run with a specific agent: agent-skill-router setup-mcp --agent <name>\n"
             f"Available agents: {', '.join(sorted(AGENT_PROVIDERS))}"
         )
 

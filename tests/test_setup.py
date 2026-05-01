@@ -146,7 +146,7 @@ class TestGitHubCopilotSetupProvider:
 class TestSetupCommand:
     def test_setup_github_copilot_workspace(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
-        result = runner.invoke(app, ["setup", "github-copilot"])
+        result = runner.invoke(app, ["setup-mcp", "github-copilot"])
 
         assert result.exit_code == 0
         config = tmp_path / ".vscode" / "mcp.json"
@@ -157,7 +157,7 @@ class TestSetupCommand:
 
     def test_setup_github_copilot_user(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path))
-        result = runner.invoke(app, ["setup", "github-copilot", "--user"])
+        result = runner.invoke(app, ["setup-mcp", "github-copilot", "--user"])
 
         assert result.exit_code == 0
         config = tmp_path / ".vscode" / "mcp.json"
@@ -165,13 +165,13 @@ class TestSetupCommand:
         assert "user" in result.output
 
     def test_setup_unknown_agent(self) -> None:
-        result = runner.invoke(app, ["setup", "nonexistent-agent"])
+        result = runner.invoke(app, ["setup-mcp", "nonexistent-agent"])
         assert result.exit_code == 1
         assert "unknown agent" in result.output
 
     def test_setup_stub_agent_shows_manual_instructions(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
-        result = runner.invoke(app, ["setup", "claude"])
+        result = runner.invoke(app, ["setup-mcp", "claude"])
         assert result.exit_code == 1
         assert "not supported" in result.output
         assert "claude" in result.output.lower()
@@ -180,7 +180,7 @@ class TestSetupCommand:
         monkeypatch.chdir(tmp_path)
         monkeypatch.setattr(Path, "home", staticmethod(lambda: tmp_path / "home"))
 
-        result = runner.invoke(app, ["setup"])
+        result = runner.invoke(app, ["setup-mcp"])
 
         assert result.exit_code == 0
         assert "github-copilot" in result.output
@@ -195,7 +195,7 @@ class TestSetupCommand:
         fake_home = tmp_path / "home"
         monkeypatch.setattr(Path, "home", staticmethod(lambda: fake_home))
 
-        result = runner.invoke(app, ["setup", "--user"])
+        result = runner.invoke(app, ["setup-mcp", "--user"])
 
         assert result.exit_code == 0
         assert "github-copilot" in result.output
@@ -214,6 +214,6 @@ class TestSetupCommand:
 
         monkeypatch.setattr(cli_mod, "AGENT_PROVIDERS", {})
 
-        result = runner.invoke(app, ["setup"])
+        result = runner.invoke(app, ["setup-mcp"])
         assert result.exit_code == 0
         assert "automated setup" in result.output

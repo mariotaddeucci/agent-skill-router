@@ -12,20 +12,20 @@ uv run pyrefly check                 # type check
 uv run pytest --cov                  # tests + coverage
 ```
 
-Pre-commit hooks (prek):
+Static analysis / pre-commit hooks (prek):
 ```bash
-uvx prek run --all-files   # run all hooks on every file
-uvx prek install           # install git hooks locally
+uv run prek run --all-files   # run all hooks on every file (lint, format, type-check)
+uvx prek install              # install git hooks locally
 ```
 
 ## Architecture
 
 - `src/agent_skill_router/server.py` — core: `_PROVIDER_ROOTS` list, `_resolve_roots()`, `build_mcp()`
 - `src/agent_skill_router/settings.py` — all config via `SKILL_ROUTER_*` env vars (pydantic-settings)
-- `src/agent_skill_router/cli.py` — Typer app; entrypoint (`agent-skill-router = "agent_skill_router.cli:app"`); commands: `list`, `install`, `run`, `setup`
+- `src/agent_skill_router/cli.py` — Typer app; entrypoint (`agent-skill-router = "agent_skill_router.cli:app"`); commands: `list`, `install`, `run`, `setup-mcp`
 - `src/agent_skill_router/__init__.py` — re-exports `app`, `build_mcp`, `Settings`; `main()` delegates to `app()`
 - `src/agent_skill_router/_skills.py` — `discover_skills()`, `install_skill()`, `SkillEntry` used by the `list`/`install` CLI commands
-- `src/agent_skill_router/agents/` — `AgentSetupProvider` ABC + one module per agent; used by the `setup` CLI command
+- `src/agent_skill_router/agents/` — `AgentSetupProvider` ABC + one module per agent; used by the `setup-mcp` CLI command
 - `src/agent_skill_router/skills/` — bundled skills shipped in the wheel (e.g. `skill-creator/SKILL.md`); coverage omits this dir
 
 ## Key conventions
@@ -63,7 +63,7 @@ uvx prek install           # install git hooks locally
 3. Use `SkillsDirectoryProvider` for generic dirs; use the vendor class (e.g. `ClaudeSkillsProvider`) for official providers.
 4. Add test coverage in `test_server.py` using the monkey-patch pattern for `_PROVIDER_ROOTS`.
 
-## Adding a new agent setup provider (CLI `setup` command)
+## Adding a new agent setup provider (CLI `setup-mcp` command)
 
 1. Create `src/agent_skill_router/agents/<name>.py` with a class extending `AgentSetupProvider`.
 2. Implement `config_path_workspace()` and `config_path_user()` in every provider.
@@ -71,4 +71,4 @@ uvx prek install           # install git hooks locally
 4. Register the instance in `AGENT_PROVIDERS` dict in `src/agent_skill_router/agents/__init__.py`.
 5. Add tests in `tests/test_setup.py`.
 
-`setup` (no `--agent`) installs into `config_path(user=user)` for every provider that does **not** raise `NotImplementedError` on `install()`. It creates the config file if it does not exist.
+`setup-mcp` (no `--agent`) installs into `config_path(user=user)` for every provider that does **not** raise `NotImplementedError` on `install()`. It creates the config file if it does not exist.
