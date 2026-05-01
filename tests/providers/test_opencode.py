@@ -1,9 +1,9 @@
 """Tests for the OpenCode provider scope flags."""
 
-import agent_skill_router.server as srv
 from fastmcp import Client
 from fastmcp.server.providers.skills import OpenCodeSkillsProvider, SkillsDirectoryProvider
 
+import agent_skill_router.server as srv
 from agent_skill_router.server import build_mcp
 
 

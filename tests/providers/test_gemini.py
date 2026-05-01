@@ -1,9 +1,9 @@
 """Tests for the Gemini provider scope flags."""
 
-import agent_skill_router.server as srv
 from fastmcp import Client
 from fastmcp.server.providers.skills import GeminiSkillsProvider, SkillsDirectoryProvider
 
+import agent_skill_router.server as srv
 from agent_skill_router.server import build_mcp
 
 

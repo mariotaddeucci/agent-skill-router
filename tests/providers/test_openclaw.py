@@ -1,9 +1,9 @@
 """Tests for the OpenClaw provider scope flags."""
 
-import agent_skill_router.server as srv
 from fastmcp import Client
 from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
+import agent_skill_router.server as srv
 from agent_skill_router.server import build_mcp
 
 
@@ -64,7 +64,11 @@ async def test_openclaw_provider_user_root_used(all_disabled_settings, tmp_path)
     patched = [
         (attr, cls, roots)
         if attr != "enable_openclaw"
-        else ("enable_openclaw", SkillsDirectoryProvider, {"workspace": [tmp_path / ".openclaw" / "ws-skills"], "user": [user]})
+        else (
+            "enable_openclaw",
+            SkillsDirectoryProvider,
+            {"workspace": [tmp_path / ".openclaw" / "ws-skills"], "user": [user]},
+        )
         for attr, cls, roots in original
     ]
     srv._PROVIDER_ROOTS = patched  # type: ignore[assignment]

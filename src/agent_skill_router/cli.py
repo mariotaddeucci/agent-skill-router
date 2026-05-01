@@ -84,7 +84,10 @@ def install(
         bool,
         typer.Option(
             "--user",
-            help="Install to ~/.agents/skills/ (available across all workspaces). Default: .agents/skills/ in the current directory.",
+            help=(
+                "Install to ~/.agents/skills/ (available across all workspaces). "
+                "Default: .agents/skills/ in the current directory."
+            ),
         ),
     ] = False,
     force: Annotated[

@@ -1,9 +1,9 @@
 """Tests for the Codex provider scope flags."""
 
-import agent_skill_router.server as srv
 from fastmcp import Client
 from fastmcp.server.providers.skills import CodexSkillsProvider, SkillsDirectoryProvider
 
+import agent_skill_router.server as srv
 from agent_skill_router.server import build_mcp
 
 
