@@ -1,195 +1,268 @@
----
-type: analysis
-title: Documentation Plan - Loop 00001
-created: 2026-05-02
-tags:
-  - documentation
-  - plan
-  - coverage
-related:
-  - '[[LOOP_00001_GAPS]]'
-  - '[[LOOP_00001_DOC_REPORT]]'
----
-
 # Documentation Plan - Loop 00001
 
 ## Summary
-- **Total Gaps:** 8
-- **Auto-Document (PENDING):** 8
+- **Total Gaps:** 12
+- **Auto-Document (PENDING):** 12
 - **Needs Context:** 0
 - **Won't Do:** 0
 
-## Current Coverage: 87.5%
+## Current Coverage: 89.2%
 ## Target Coverage: 90%
-## Estimated Post-Loop Coverage: 92.7%
+## Estimated Post-Loop Coverage: 90.2%
 
 ---
 
 ## PENDING - Ready for Auto-Documentation
 
-### DOC-001: `build_mcp`
-- **Status:** `IMPLEMENTED`
-- **Implemented In:** Loop 00001
-- **File:** `src/agent_skill_router/server.py`
+### DOC-001: `Settings` class
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/settings.py`
 - **Gap ID:** GAP-001
-- **Type:** Function
+- **Type:** Class
 - **Visibility:** PUBLIC
 - **Importance:** CRITICAL
 - **Signature:**
   ```
-  def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = None) -> FastMCP
+  class Settings(BaseSettings)
   ```
-- **Documentation Added:**
-  - [x] Description: Primary public entry point; builds and returns a configured FastMCP server instance
-  - [x] Parameters: `settings` (optional Settings override), `workspace_dir` (optional workspace path override)
-  - [x] Returns: Configured `FastMCP` instance exposing skill resources and tools
-  - [x] Examples: Yes — basic usage and settings-override example
-  - [x] Errors: Documented workspace resolution fallback behaviour
+- **Documentation Plan:**
+  - [ ] Description: Pydantic-settings configuration class for all agent-skill-router options; all settings are controlled via `SKILL_ROUTER_*` env vars
+  - [ ] Parameters: N/A (fields documented via `Field(description=...)`)
+  - [ ] Returns: N/A
+  - [ ] Examples: No
+  - [ ] Errors: N/A
 
-### DOC-002: `ClaudeAgentSetupProvider.list_prompts`
-- **Status:** `IMPLEMENTED`
-- **Implemented In:** Loop 00001
-- **File:** `src/agent_skill_router/agents/claude.py`
+---
+
+### DOC-002: `SlashCommand` type alias
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/agents/_base.py`
 - **Gap ID:** GAP-002
-- **Type:** Function
-- **Visibility:** INTERNAL
+- **Type:** Type alias
+- **Visibility:** PUBLIC
 - **Importance:** HIGH
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  SlashCommand = Annotated[PromptSlashCommand | ToolSlashCommand | ResourceSlashCommand, Field(discriminator="type")]
   ```
-- **Documentation Added:**
-  - [x] Description: Scans `.claude/commands/*.md` under each root for slash command definitions
-  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
-  - [x] Returns: List of `SlashCommand` objects discovered, one per `.md` file
-  - [x] Examples: No
-  - [x] Errors: No
+- **Documentation Plan:**
+  - [ ] Description: Discriminated union of the three slash-command variants; the `type` field determines which variant is in use
+  - [ ] Parameters: N/A
+  - [ ] Returns: N/A
+  - [ ] Examples: No
+  - [ ] Errors: N/A
 
-### DOC-003: `CursorAgentSetupProvider.list_prompts`
-- **Status:** `IMPLEMENTED`
-- **Implemented In:** Loop 00001
-- **File:** `src/agent_skill_router/agents/cursor.py`
+---
+
+### DOC-003: `ClaudeProvider.config_path_workspace`
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/agents/claude.py`
 - **Gap ID:** GAP-003
-- **Type:** Function
+- **Type:** Method
 - **Visibility:** INTERNAL
 - **Importance:** HIGH
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_workspace(self) -> Path
   ```
-- **Documentation Added:**
-  - [x] Description: Scans `.cursor/rules/*.mdc` and `*.md` under each root for rule/prompt definitions
-  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
-  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by stem
-  - [x] Examples: No
-  - [x] Errors: No
+- **Documentation Plan:**
+  - [ ] Description: Return the path to the Claude MCP config file for workspace-level installation (`.claude/mcp.json` relative to `Path.cwd()`)
+  - [ ] Parameters: None
+  - [ ] Returns: `Path` — workspace-scoped config path
+  - [ ] Examples: No
+  - [ ] Errors: N/A
 
-### DOC-004: `GithubCopilotAgentSetupProvider.list_prompts`
-- **Status:** `IMPLEMENTED`
-- **Implemented In:** Loop 00001
-- **File:** `src/agent_skill_router/agents/github_copilot.py`
+---
+
+### DOC-004: `ClaudeProvider.config_path_user`
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/agents/claude.py`
 - **Gap ID:** GAP-004
-- **Type:** Function
+- **Type:** Method
 - **Visibility:** INTERNAL
 - **Importance:** HIGH
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_user(self) -> Path
   ```
-- **Documentation Added:**
-  - [x] Description: Scans `.github/prompts/*.prompt.md` under each root for slash command definitions
-  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
-  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by stem
-  - [x] Examples: No
-  - [x] Errors: No
+- **Documentation Plan:**
+  - [ ] Description: Return the path to the Claude MCP config file for user-level installation (`~/.claude/mcp.json`)
+  - [ ] Parameters: None
+  - [ ] Returns: `Path` — user-scoped config path
+  - [ ] Examples: No
+  - [ ] Errors: N/A
 
-### DOC-005: `OpencodeAgentSetupProvider.list_prompts`
-- **Status:** `IMPLEMENTED`
-- **Implemented In:** Loop 00001 (iteration 2)
-- **File:** `src/agent_skill_router/agents/opencode.py`
+---
+
+### DOC-005: `CursorProvider.config_path_workspace`
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/agents/cursor.py`
 - **Gap ID:** GAP-005
-- **Type:** Function
+- **Type:** Method
 - **Visibility:** INTERNAL
 - **Importance:** HIGH
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_workspace(self) -> Path
   ```
-- **Documentation Added:**
-  - [x] Description: Scans `.opencode/commands/*.md` under each root for slash command definitions
-  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
-  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by stem
-  - [x] Examples: No
-  - [x] Errors: No
+- **Documentation Plan:**
+  - [ ] Description: Return the path to the Cursor MCP config file for workspace-level installation
+  - [ ] Parameters: None
+  - [ ] Returns: `Path` — workspace-scoped config path
+  - [ ] Examples: No
+  - [ ] Errors: N/A
 
-### DOC-006: `GooseAgentSetupProvider.list_prompts`
-- **Status:** `IMPLEMENTED`
-- **Implemented In:** Loop 00001 (iteration 1 — already had docstring)
-- **File:** `src/agent_skill_router/agents/goose.py`
+---
+
+### DOC-006: `CursorProvider.config_path_user`
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/agents/cursor.py`
 - **Gap ID:** GAP-006
-- **Type:** Function
+- **Type:** Method
 - **Visibility:** INTERNAL
 - **Importance:** HIGH
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_user(self) -> Path
   ```
-- **Documentation Added:**
-  - [x] Description: Reads recipes from `.goose/recipes/*.yaml` under each root
-  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
-  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by title
-  - [x] Examples: No
-  - [x] Errors: No
+- **Documentation Plan:**
+  - [ ] Description: Return the path to the Cursor MCP config file for user-level installation
+  - [ ] Parameters: None
+  - [ ] Returns: `Path` — user-scoped config path
+  - [ ] Examples: No
+  - [ ] Errors: N/A
 
-### DOC-007: `GeminiAgentSetupProvider.list_prompts`
-- **Status:** `IMPLEMENTED`
-- **Implemented In:** Loop 00001 (iteration 2)
+---
+
+### DOC-007: `GeminiProvider.config_path_workspace`
+- **Status:** `PENDING`
 - **File:** `src/agent_skill_router/agents/gemini.py`
 - **Gap ID:** GAP-007
-- **Type:** Function
+- **Type:** Method
 - **Visibility:** INTERNAL
 - **Importance:** HIGH
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_workspace(self) -> Path
   ```
-- **Documentation Added:**
-  - [x] Description: Scans `.gemini/commands/**/*.toml` under each root for slash command definitions
-  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
-  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by colon-joined path name
-  - [x] Examples: No
-  - [x] Errors: No
+- **Documentation Plan:**
+  - [ ] Description: Return the path to the Gemini MCP config file for workspace-level installation
+  - [ ] Parameters: None
+  - [ ] Returns: `Path` — workspace-scoped config path
+  - [ ] Examples: No
+  - [ ] Errors: N/A
 
-### DOC-008: `CodexAgentSetupProvider.list_prompts`
-- **Status:** `IMPLEMENTED`
-- **Implemented In:** Loop 00001 (iteration 2)
-- **File:** `src/agent_skill_router/agents/codex.py`
+---
+
+### DOC-008: `GeminiProvider.config_path_user`
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/agents/gemini.py`
 - **Gap ID:** GAP-008
-- **Type:** Function
+- **Type:** Method
 - **Visibility:** INTERNAL
 - **Importance:** HIGH
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_user(self) -> Path
   ```
-- **Documentation Added:**
-  - [x] Description: Scans `.codex/prompts/*.md` under each root for slash command definitions
-  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
-  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by stem
-  - [x] Examples: No
-  - [x] Errors: No
+- **Documentation Plan:**
+  - [ ] Description: Return the path to the Gemini MCP config file for user-level installation
+  - [ ] Parameters: None
+  - [ ] Returns: `Path` — user-scoped config path
+  - [ ] Examples: No
+  - [ ] Errors: N/A
+
+---
+
+### DOC-009: `GithubCopilotProvider.config_path_workspace`
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/agents/github_copilot.py`
+- **Gap ID:** GAP-009
+- **Type:** Method
+- **Visibility:** INTERNAL
+- **Importance:** HIGH
+- **Signature:**
+  ```
+  def config_path_workspace(self) -> Path
+  ```
+- **Documentation Plan:**
+  - [ ] Description: Return the path to the GitHub Copilot MCP config file for workspace-level installation
+  - [ ] Parameters: None
+  - [ ] Returns: `Path` — workspace-scoped config path
+  - [ ] Examples: No
+  - [ ] Errors: N/A
+
+---
+
+### DOC-010: `GithubCopilotProvider.config_path_user`
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/agents/github_copilot.py`
+- **Gap ID:** GAP-010
+- **Type:** Method
+- **Visibility:** INTERNAL
+- **Importance:** HIGH
+- **Signature:**
+  ```
+  def config_path_user(self) -> Path
+  ```
+- **Documentation Plan:**
+  - [ ] Description: Return the path to the GitHub Copilot MCP config file for user-level installation
+  - [ ] Parameters: None
+  - [ ] Returns: `Path` — user-scoped config path
+  - [ ] Examples: No
+  - [ ] Errors: N/A
+
+---
+
+### DOC-011: `OpenCodeProvider.config_path_workspace`
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/agents/opencode.py`
+- **Gap ID:** GAP-011
+- **Type:** Method
+- **Visibility:** INTERNAL
+- **Importance:** HIGH
+- **Signature:**
+  ```
+  def config_path_workspace(self) -> Path
+  ```
+- **Documentation Plan:**
+  - [ ] Description: Return the path to the OpenCode MCP config file for workspace-level installation
+  - [ ] Parameters: None
+  - [ ] Returns: `Path` — workspace-scoped config path
+  - [ ] Examples: No
+  - [ ] Errors: N/A
+
+---
+
+### DOC-012: `OpenCodeProvider.config_path_user`
+- **Status:** `PENDING`
+- **File:** `src/agent_skill_router/agents/opencode.py`
+- **Gap ID:** GAP-012
+- **Type:** Method
+- **Visibility:** INTERNAL
+- **Importance:** HIGH
+- **Signature:**
+  ```
+  def config_path_user(self) -> Path
+  ```
+- **Documentation Plan:**
+  - [ ] Description: Return the path to the OpenCode MCP config file for user-level installation
+  - [ ] Parameters: None
+  - [ ] Returns: `Path` — user-scoped config path
+  - [ ] Examples: No
+  - [ ] Errors: N/A
 
 ---
 
 ## PENDING - NEEDS CONTEXT
 
-_(None)_
+*(none)*
 
 ---
 
 ## WON'T DO
 
-_(None)_
+*(none)*
 
 ---
 
@@ -197,18 +270,27 @@ _(None)_
 
 Recommended sequence based on visibility and dependencies:
 
-1. **DOC-001** - `build_mcp` (PUBLIC, CRITICAL — primary library entry point; document first)
-2. **DOC-002** - `ClaudeAgentSetupProvider.list_prompts` (INTERNAL, HIGH — reference impl for group)
-3. **DOC-003** - `CursorAgentSetupProvider.list_prompts` (INTERNAL, HIGH)
-4. **DOC-004** - `GithubCopilotAgentSetupProvider.list_prompts` (INTERNAL, HIGH)
-5. **DOC-005** - `OpencodeAgentSetupProvider.list_prompts` (INTERNAL, HIGH)
-6. **DOC-006** - `GooseAgentSetupProvider.list_prompts` (INTERNAL, HIGH)
-7. **DOC-007** - `GeminiAgentSetupProvider.list_prompts` (INTERNAL, HIGH)
-8. **DOC-008** - `CodexAgentSetupProvider.list_prompts` (INTERNAL, HIGH)
+1. **DOC-001** - `Settings` (PUBLIC, CRITICAL — primary extension point for operators)
+2. **DOC-002** - `SlashCommand` (PUBLIC, HIGH — discriminated union used by callers)
+3. **DOC-003** - `ClaudeProvider.config_path_workspace` (INTERNAL, HIGH)
+4. **DOC-004** - `ClaudeProvider.config_path_user` (INTERNAL, HIGH)
+5. **DOC-005** - `CursorProvider.config_path_workspace` (INTERNAL, HIGH)
+6. **DOC-006** - `CursorProvider.config_path_user` (INTERNAL, HIGH)
+7. **DOC-007** - `GeminiProvider.config_path_workspace` (INTERNAL, HIGH)
+8. **DOC-008** - `GeminiProvider.config_path_user` (INTERNAL, HIGH)
+9. **DOC-009** - `GithubCopilotProvider.config_path_workspace` (INTERNAL, HIGH)
+10. **DOC-010** - `GithubCopilotProvider.config_path_user` (INTERNAL, HIGH)
+11. **DOC-011** - `OpenCodeProvider.config_path_workspace` (INTERNAL, HIGH)
+12. **DOC-012** - `OpenCodeProvider.config_path_user` (INTERNAL, HIGH)
 
 ## Related Documentation
 
 Exports that should be documented together for consistency:
 
-- **Group A:** DOC-002 through DOC-008 — all `list_prompts` overrides across agent providers; identical signatures, one-liner docstrings mentioning the specific directory each scans
-- **Group B:** DOC-001 — `build_mcp` standalone; highest priority as the primary public API
+- **Group A:** DOC-001 — `Settings` class (standalone, highest priority)
+- **Group B:** DOC-002 — `SlashCommand` type alias (document alongside `PromptSlashCommand`, `ToolSlashCommand`, `ResourceSlashCommand` in `_base.py`)
+- **Group C:** DOC-003 + DOC-004 — `ClaudeProvider` config path methods (pair together)
+- **Group D:** DOC-005 + DOC-006 — `CursorProvider` config path methods (pair together)
+- **Group E:** DOC-007 + DOC-008 — `GeminiProvider` config path methods (pair together)
+- **Group F:** DOC-009 + DOC-010 — `GithubCopilotProvider` config path methods (pair together)
+- **Group G:** DOC-011 + DOC-012 — `OpenCodeProvider` config path methods (pair together)
