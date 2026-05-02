@@ -109,6 +109,22 @@ class ClaudeSetupProvider(AgentSetupProvider):
         return commands
 
     def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        """Discover Claude Code slash commands from ``.claude/commands/*.md`` files.
+
+        Scans each root directory for Markdown files under ``.claude/commands/``.
+        Files are sorted alphabetically; the first file found for a given stem
+        (command name) wins — duplicates across roots are skipped.
+
+        Parameters:
+            roots: Directories to search. Defaults to ``[Path.cwd()]`` when
+                ``None``.
+
+        Returns:
+            list[SlashCommand] — one ``PromptSlashCommand`` per discovered
+            ``.md`` file, with ``name`` set to ``/<stem>`` and ``description``
+            read from the file's YAML front-matter ``description`` field (empty
+            string if absent).
+        """
         seen: set[str] = set()
         commands: list[SlashCommand] = []
         for root in roots or [Path.cwd()]:
