@@ -2,10 +2,10 @@
 
 ## Context
 - **Playbook:** Documentation
-- **Agent:** {{AGENT_NAME}}
-- **Project:** {{AGENT_PATH}}
-- **Auto Run Folder:** {{AUTORUN_FOLDER}}
-- **Loop:** {{LOOP_NUMBER}}
+- **Agent:** Bob
+- **Project:** /Users/mariotaddeucci/Documents/GitHub/agent-skill-router
+- **Auto Run Folder:** /Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks
+- **Loop:** 00001
 
 ## Objective
 
@@ -13,15 +13,17 @@ Write documentation for `PENDING` gaps from the evaluation phase. Create high-qu
 
 ## Instructions
 
-1. **Read the plan** from `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_PLAN.md`
+1. **Read the plan** from `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_PLAN.md`
 2. **Find all `PENDING` items** (not `IMPLEMENTED`, `WON'T DO`, or `PENDING - NEEDS CONTEXT`)
 3. **Write documentation** for each PENDING item
 4. **Update status** to `IMPLEMENTED` in the plan file
-5. **Log changes** to `{{AUTORUN_FOLDER}}/DOC_LOG_{{AGENT_NAME}}_{{DATE}}.md`
+5. **Log changes** to `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/DOC_LOG_Bob_2026-05-02.md`
 
 ## Implementation Checklist
 
-- [ ] **Write documentation (or skip if none)**: Read {{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_PLAN.md. If the file doesn't exist OR contains no items with status exactly `PENDING`, mark this task complete without changes. Otherwise, write documentation for ONE `PENDING` item with PUBLIC/INTERNAL visibility and HIGH/CRITICAL importance. Follow project documentation conventions. Update status to `IMPLEMENTED` in the plan. Log to DOC_LOG. Only document ONE export per task.
+- [x] **Write documentation (or skip if none)**: Read /Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_PLAN.md. If the file doesn't exist OR contains no items with status exactly `PENDING`, mark this task complete without changes. Otherwise, write documentation for ONE `PENDING` item with PUBLIC/INTERNAL visibility and HIGH/CRITICAL importance. Follow project documentation conventions. Update status to `IMPLEMENTED` in the plan. Log to DOC_LOG. Only document ONE export per task.
+
+<!-- Completed: Documented `build_mcp` (DOC-001) in src/agent_skill_router/server.py. Status updated to IMPLEMENTED in LOOP_00001_PLAN.md. Logged to DOC_LOG_Bob_2026-05-02.md. -->
 
 ## Documentation Structure
 
@@ -107,12 +109,12 @@ Before marking as IMPLEMENTED:
 
 ## Update Plan Status
 
-After documenting each export, update `LOOP_{{LOOP_NUMBER}}_PLAN.md`:
+After documenting each export, update `LOOP_00001_PLAN.md`:
 
 ```markdown
 ### DOC-001: [Export Name]
 - **Status:** `IMPLEMENTED`  ← Changed from PENDING
-- **Implemented In:** Loop {{LOOP_NUMBER}}
+- **Implemented In:** Loop 00001
 - **Documentation Added:**
   - [x] Description
   - [x] Parameters (3)
@@ -122,10 +124,10 @@ After documenting each export, update `LOOP_{{LOOP_NUMBER}}_PLAN.md`:
 
 ## Log Format
 
-Append to `{{AUTORUN_FOLDER}}/DOC_LOG_{{AGENT_NAME}}_{{DATE}}.md`:
+Append to `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/DOC_LOG_Bob_2026-05-02.md`:
 
 ```markdown
-## Loop {{LOOP_NUMBER}} - [Timestamp]
+## Loop 00001 - [Timestamp]
 
 ### Documentation Added
 
@@ -155,12 +157,12 @@ Append to `{{AUTORUN_FOLDER}}/DOC_LOG_{{AGENT_NAME}}_{{DATE}}.md`:
 This task is complete when ONE of the following is true:
 
 **Option A - Documented an export:**
-1. You've written documentation for exactly ONE export from `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_PLAN.md`
-2. You've appended the change details to `{{AUTORUN_FOLDER}}/DOC_LOG_{{AGENT_NAME}}_{{DATE}}.md`
-3. You've updated the item status in `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_PLAN.md` to `IMPLEMENTED`
+1. You've written documentation for exactly ONE export from `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_PLAN.md`
+2. You've appended the change details to `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/DOC_LOG_Bob_2026-05-02.md`
+3. You've updated the item status in `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_PLAN.md` to `IMPLEMENTED`
 
 **Option B - No PENDING items available:**
-1. `LOOP_{{LOOP_NUMBER}}_PLAN.md` doesn't exist, OR
+1. `LOOP_00001_PLAN.md` doesn't exist, OR
 2. It contains no items with status exactly `PENDING`
 3. Mark this task complete without making changes
 
@@ -168,16 +170,16 @@ This graceful handling allows the pipeline to continue when a loop iteration pro
 
 ## When No Documentation Is Available
 
-If there are no items with status exactly `PENDING` in the plan file, append to `{{AUTORUN_FOLDER}}/DOC_LOG_{{AGENT_NAME}}_{{DATE}}.md`:
+If there are no items with status exactly `PENDING` in the plan file, append to `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/DOC_LOG_Bob_2026-05-02.md`:
 
 ```markdown
 ---
 
-## [YYYY-MM-DD HH:MM] - Loop {{LOOP_NUMBER}} Complete
+## [YYYY-MM-DD HH:MM] - Loop 00001 Complete
 
-**Agent:** {{AGENT_NAME}}
-**Project:** {{AGENT_NAME}}
-**Loop:** {{LOOP_NUMBER}}
+**Agent:** Bob
+**Project:** Bob
+**Loop:** 00001
 **Status:** No PENDING documentation gaps available
 
 **Summary:**

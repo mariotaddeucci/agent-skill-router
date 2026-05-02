@@ -28,7 +28,8 @@ related:
 ## PENDING - Ready for Auto-Documentation
 
 ### DOC-001: `build_mcp`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/server.py`
 - **Gap ID:** GAP-001
 - **Type:** Function
@@ -38,12 +39,12 @@ related:
   ```
   def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = None) -> FastMCP
   ```
-- **Documentation Plan:**
-  - [ ] Description: Primary public entry point; builds and returns a configured FastMCP server instance
-  - [ ] Parameters: `settings` (optional Settings override), `workspace_dir` (optional workspace path override)
-  - [ ] Returns: Configured `FastMCP` instance exposing skill resources and tools
-  - [ ] Examples: Yes — show basic usage as library consumer
-  - [ ] Errors: Document behavior when settings are invalid or dirs don't exist
+- **Documentation Added:**
+  - [x] Description: Primary public entry point; builds and returns a configured FastMCP server instance
+  - [x] Parameters: `settings` (optional Settings override), `workspace_dir` (optional workspace path override)
+  - [x] Returns: Configured `FastMCP` instance exposing skill resources and tools
+  - [x] Examples: Yes — basic usage and settings-override example
+  - [x] Errors: Documented workspace resolution fallback behaviour
 
 ### DOC-002: `ClaudeAgentSetupProvider.list_prompts`
 - **Status:** `PENDING`
