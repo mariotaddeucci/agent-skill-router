@@ -30,6 +30,7 @@ uvx prek install              # install git hooks locally
 
 ## Key conventions
 
+- **Temp files** — save all temporary files to `./temp/`; this directory is in `.gitignore` so accidental commits are prevented.
 - **Python 3.13+ only** — do not add `from __future__ import annotations`; use native PEP 604/585 types directly.
 - **Absolute imports only** — never use relative imports (`from .foo import ...`).
 - **All path operations use `pathlib.Path`** — never `os.path`.
