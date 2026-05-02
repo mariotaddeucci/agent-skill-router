@@ -1,0 +1,17 @@
+settings:
+  timeout_minutes: 45
+  max_concurrent: 1
+  queue_size: 15
+
+subscriptions:
+  - name: Task Worker
+    label: Task Worker
+    event: task.pending
+    watch: 'TODO.md'
+    poll_minutes: 5
+    prompt: |
+      There are pending tasks in TODO.md:
+      {content}
+
+      Pick the highest priority pending task and complete it.
+      When done, check off the task in the file by replacing "- [ ]" with "- [x]".
