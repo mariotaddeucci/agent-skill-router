@@ -52,6 +52,8 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9",
     "prek>=0.3.11",
     "pyrefly>=0.63.1",
     "pytest>=9.0.3",
