@@ -184,6 +184,11 @@ flowchart TB
         ENV["SKILL_ROUTER_* env vars\n(pydantic-settings)"]
     end
 
+    subgraph "MCP Proxy"
+        READ["Read agent configs\n(.claude/mcp.json, etc.)"]
+        PROXY["ProxyProvider\nfor remote servers"]
+    end
+
     CMD_RUN --> BUILD
     CMD_LIST --> DISC
     CMD_INSTALL --> INST
@@ -192,6 +197,11 @@ flowchart TB
     CMD_SETUP --> OTHERS
     ENV --> BUILD
     ENV --> CMD_LIST
+    ENV --> READ
 
     BUILD --> MCP["FastMCP instance\n(resources + prompts)"]
+    READ --> PROXY
+    PROXY --> MCP
 ```
+
+The MCP proxy component (right side) reads MCP server entries from native agent config files and re-exposes them through `ProxyProvider`, making them accessible to any connected agent.

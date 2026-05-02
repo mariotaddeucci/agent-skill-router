@@ -6,6 +6,13 @@ hide:
 
 # Agent Skill Router
 
+<div style="text-align: center; padding: 2rem 0; background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%); border-radius: 12px; margin-bottom: 2rem;">
+  <h3 style="margin: 0 0 1rem 0; font-weight: 600;">Quick Start</h3>
+  <p style="margin: 0 0 1.5rem 0; color: #444;">Get running in 30 seconds</p>
+  <code style="background: #1e1e1e; color: #fff; padding: 0.75rem 1.5rem; border-radius: 6px; font-size: 0.9rem;">uvx agent-skill-router setup-mcp</code>
+  <p style="margin: 1rem 0 0 0; font-size: 0.85rem; color: #666;">Auto-configures Claude, Cursor, Copilot, OpenCode & more</p>
+</div>
+
 **Agent Skill Router** is an MCP (Model Context Protocol) server that acts as a **universal proxy** between AI coding agents. It discovers skills and slash commands from any agent's native format and makes them available to every other agent — with zero manual conversion.
 
 ---

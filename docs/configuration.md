@@ -48,6 +48,50 @@ Disable any provider entirely by setting its toggle to `false`.
 | `SKILL_ROUTER_ENABLE_AGENTS` | `true` | `~/.agents/skills/` and `<ws>/.agents/skills/` |
 | `SKILL_ROUTER_ENABLE_OPENCLAW` | `true` | `~/.openclaw/skills/` and `<ws>/.openclaw/skills/` |
 
+### MCP server proxy
+
+| Variable | Type | Default | Description |
+|---|---|---|---|
+| `SKILL_ROUTER_ENABLE_MCP_PROXY` | `bool` | `true` | Read MCP servers from agent config files and proxy them to all connected agents |
+
+When enabled, the router reads MCP server entries from each agent's config file and re-exposes them through a unified endpoint. This lets you configure an MCP server once (e.g., in Claude's `.claude/mcp.json`) and have it accessible from any other MCP-compatible agent.
+
+```mermaid
+flowchart LR
+    subgraph "Native config files"
+        C[".claude/mcp.json"]
+        CU[".cursor/mcp.json"]
+        O[".opencode/mcp.json"]
+    end
+
+    subgraph "Agent Skill Router (proxy)"
+        READ["Read config files"]
+        REG["Register as ProxyProvider"]
+    end
+
+    subgraph "Any connected agent"
+        A["Claude\nCursor\nCopilot\n..."]
+    end
+
+    C --> READ
+    CU --> READ
+    O --> READ
+    READ --> REG
+    REG --> A
+```
+
+Supported config files:
+- `.claude/mcp.json` (Claude API)
+- `.cursor/mcp.json` (Cursor)
+- `.vscode/mcp.json` (GitHub Copilot / VS Code)
+- `.opencode/mcp.json` (OpenCode)
+- `~/.config/opencode/opencode.json` (OpenCode user config)
+
+Servers are identified by name. When the same server name exists in multiple configs, the first one found wins.
+
+!!! tip "Use case"
+    If you use both Claude and Cursor, configure all your MCP servers in ONE agent's config file — Agent Skill Router makes them available to ALL agents automatically.
+
 ### Extra directories
 
 | Variable | Type | Default | Description |
