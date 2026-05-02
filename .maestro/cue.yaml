@@ -18,6 +18,31 @@ subscriptions:
 
       Pick the highest priority pending task and complete it.
       When done, check off the task in the file by replacing "- [ ]" with "- [x]".
+    output_prompt: |
+      The task has been completed. Now open a pull request linked to the issue:
+
+      1. Extract the issue number from the task file path (e.g. .maestro/tasks/42.md → issue #42).
+
+      2. Create a branch named fix/issue-<number> if it does not already exist:
+         git checkout -b fix/issue-<number>
+
+      3. Stage and commit all changes made during the task:
+         git add -A
+         git commit -m "fix: resolve issue #<number>
+
+         Closes #<number>"
+
+      4. Push the branch:
+         git push -u origin fix/issue-<number>
+
+      5. Open a pull request that closes the issue using the GitHub CLI:
+         gh pr create \
+           --title "fix: resolve issue #<number>" \
+           --body "Closes #<number>" \
+           --base main \
+           --head fix/issue-<number>
+
+      6. Report the URL of the created pull request.
 
   - name: Agent Automation-chain-1
     label: GitHub Issue Sync
