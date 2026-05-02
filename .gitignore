@@ -183,3 +183,6 @@ site/
 
 # Temp files for agents
 temp/
+
+# Agent task files (auto-generated from GitHub issues)
+.maestro/tasks/*.md
