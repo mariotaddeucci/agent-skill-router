@@ -15,7 +15,8 @@
 ## PENDING - Ready for Auto-Documentation
 
 ### DOC-001: `Settings` class
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/settings.py`
 - **Gap ID:** GAP-001
 - **Type:** Class
@@ -25,12 +26,11 @@
   ```
   class Settings(BaseSettings)
   ```
-- **Documentation Plan:**
-  - [ ] Description: Pydantic-settings configuration class for all agent-skill-router options; all settings are controlled via `SKILL_ROUTER_*` env vars
-  - [ ] Parameters: N/A (fields documented via `Field(description=...)`)
-  - [ ] Returns: N/A
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description
+  - [x] Parameters (N/A — fields use Field(description=...))
+  - [x] Returns (N/A)
+  - [x] Example
 
 ---
 
