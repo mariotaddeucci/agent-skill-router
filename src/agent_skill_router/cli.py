@@ -6,6 +6,7 @@ from typing import Annotated
 import typer
 
 from agent_skill_router._skills import discover_skills, install_skill
+from agent_skill_router._workspace_init import init_workspace as _init_workspace
 from agent_skill_router.agents import AGENT_PROVIDERS
 from agent_skill_router.agents._base import PromptSlashCommand
 from agent_skill_router.server import (
@@ -285,6 +286,41 @@ def setup(
             f"Run with a specific agent: agent-skill-router setup-mcp --agent <name>\n"
             f"Available agents: {', '.join(sorted(AGENT_PROVIDERS))}"
         )
+
+
+@app.command(name="init-workspace")
+def init_workspace(
+    workspace_dir: WorkspaceDirArg = None,
+    dry_run: Annotated[bool, typer.Option("--dry-run", help="Show planned actions without executing.")] = False,
+    force: Annotated[bool, typer.Option("--force", "-f", help="Overwrite existing files and symlinks.")] = False,
+) -> None:
+    """Make the workspace multi-agent friendly.
+
+    - Merges CLAUDE.md and .github/copilot-instructions.md into AGENTS.md
+    - Creates symlinks CLAUDE.md -> AGENTS.md, .github/copilot-instructions.md -> AGENTS.md, GEMINI.md -> AGENTS.md
+    - Moves skills to .claude/skills/ and creates symlinks from other provider dirs
+
+    Supported agents: Claude Code, GitHub Copilot, Gemini CLI, OpenAI Codex, Cursor, Goose, OpenCode.
+    """
+    settings = Settings()
+    ws = workspace_root(workspace_dir if workspace_dir is not None else settings.workspace_dir)
+
+    if dry_run:
+        typer.echo("Dry run — no files will be modified.\n")
+
+    actions = _init_workspace(ws, dry_run=dry_run, force=force)
+
+    if not actions:
+        typer.echo("Nothing to do — workspace is already multi-agent friendly.")
+        return
+
+    for action in actions:
+        typer.echo(f"  {action}")
+
+    if dry_run:
+        typer.echo(f"\n{len(actions)} action(s) planned. Remove --dry-run to apply.")
+    else:
+        typer.echo(f"\n{len(actions)} action(s) completed.")
 
 
 def main() -> None:

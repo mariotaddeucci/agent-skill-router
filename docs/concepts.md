@@ -10,6 +10,57 @@ This page explains the core ideas behind Agent Skill Router: what it is, how it 
 
 ---
 
+## Multi-Agent Friendly Workspace
+
+When working with multiple AI agents in the same repository, each agent reads instructions and skills from its own native locations. This quickly leads to duplicated files and divergent instructions.
+
+Agent Skill Router solves this with the `init-workspace` command, which establishes a single source of truth using two conventions:
+
+### `AGENTS.md` as the canonical instruction file
+
+`AGENTS.md` is a cross-agent standard adopted by Claude Code, GitHub Copilot, Gemini CLI, OpenAI Codex, and others. Instead of maintaining separate `CLAUDE.md`, `GEMINI.md`, and `.github/copilot-instructions.md` files, `init-workspace` merges them all into a single `AGENTS.md` and replaces the originals with symlinks:
+
+```
+AGENTS.md          ← single source of truth
+CLAUDE.md          → symlink to AGENTS.md
+GEMINI.md          → symlink to AGENTS.md
+.github/
+  copilot-instructions.md  → symlink to AGENTS.md
+```
+
+Each agent follows the symlink transparently and reads the same instructions.
+
+### `.claude/skills/` as the canonical skills directory
+
+`.claude/skills/` is the skills directory used by Claude Code and already supported by the `ClaudeSkillsProvider` in this router. After running `init-workspace`, all provider-specific skill directories become symlinks pointing to `.claude/skills/`:
+
+```
+.claude/skills/    ← canonical location for all skills
+.agents/skills/    → symlink to .claude/skills/
+.cursor/skills/    → symlink to .claude/skills/
+.gemini/skills/    → symlink to .claude/skills/
+.codex/skills/     → symlink to .claude/skills/
+.goose/skills/     → symlink to .claude/skills/
+.opencode/skills/  → symlink to .claude/skills/
+.github/skills/    → symlink to .claude/skills/
+```
+
+Any agent scanning its own native skills directory will transparently find the same skills.
+
+### Running `init-workspace`
+
+```bash
+# Preview planned changes
+agent-skill-router init-workspace --dry-run
+
+# Apply changes
+agent-skill-router init-workspace
+```
+
+See the [`init-workspace` CLI reference](cli.md#init-workspace) for full usage details.
+
+---
+
 ## The proxy model
 
 Agent Skill Router is, at its heart, a **format proxy**. It reads instructions written for Agent A and makes them available to Agent B — without any manual conversion.
