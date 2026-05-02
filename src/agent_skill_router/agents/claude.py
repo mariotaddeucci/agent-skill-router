@@ -42,6 +42,11 @@ class ClaudeSetupProvider(AgentSetupProvider):
     name = "claude"
 
     def config_path_workspace(self) -> Path:
+        """Return the workspace-scoped Claude MCP config path.
+
+        Returns:
+            Path — ``<cwd>/.claude/mcp.json``
+        """
         return Path.cwd() / ".claude" / "mcp.json"
 
     def config_path_user(self) -> Path:

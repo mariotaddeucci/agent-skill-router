@@ -56,7 +56,8 @@
 ---
 
 ### DOC-003: `ClaudeProvider.config_path_workspace`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/claude.py`
 - **Gap ID:** GAP-003
 - **Type:** Method
@@ -66,12 +67,12 @@
   ```
   def config_path_workspace(self) -> Path
   ```
-- **Documentation Plan:**
-  - [ ] Description: Return the path to the Claude MCP config file for workspace-level installation (`.claude/mcp.json` relative to `Path.cwd()`)
-  - [ ] Parameters: None
-  - [ ] Returns: `Path` — workspace-scoped config path
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Return the path to the Claude MCP config file for workspace-level installation (`.claude/mcp.json` relative to `Path.cwd()`)
+  - [x] Parameters: None
+  - [x] Returns: `Path` — workspace-scoped config path
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 
