@@ -74,3 +74,90 @@ class TestClaudeSetupProvider:
         config = tmp_path / "deep" / "nested" / "mcp.json"
         self.provider.install(config)
         assert config.exists()
+
+    def test_read_mcp_servers_returns_empty_when_no_config(self, tmp_path: Path) -> None:
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+        assert result == {}
+
+    def test_read_mcp_servers_parses_mcpservers_key(self, tmp_path: Path) -> None:
+        config = tmp_path / ".claude" / "mcp.json"
+        config.parent.mkdir(parents=True)
+        config.write_text(json.dumps({"mcpServers": {"my-server": {"command": "uvx", "args": ["my-pkg"]}}}))
+
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+
+        assert "my-server" in result
+        assert result["my-server"].command == "uvx"
+        assert result["my-server"].args == ["my-pkg"]
+
+    def test_read_mcp_servers_excludes_self(self, tmp_path: Path) -> None:
+        config = tmp_path / ".claude" / "mcp.json"
+        config.parent.mkdir(parents=True)
+        config.write_text(
+            json.dumps(
+                {
+                    "mcpServers": {
+                        "agent-skill-router": {"command": "uvx", "args": []},
+                        "other-server": {"command": "node", "args": ["server.js"]},
+                    }
+                }
+            )
+        )
+
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+
+        assert "agent-skill-router" not in result
+        assert "other-server" in result
+
+    def test_read_mcp_servers_first_wins_across_roots(self, tmp_path: Path) -> None:
+        root1 = tmp_path / "root1"
+        root2 = tmp_path / "root2"
+        for root in (root1, root2):
+            cfg = root / ".claude" / "mcp.json"
+            cfg.parent.mkdir(parents=True)
+            cfg.write_text(json.dumps({"mcpServers": {"dup-server": {"command": f"cmd-{root.name}", "args": []}}}))
+
+        result = self.provider.read_mcp_servers(roots=[root1, root2])
+
+        assert result["dup-server"].command == "cmd-root1"
+
+    def test_read_mcp_servers_skips_corrupt_json(self, tmp_path: Path) -> None:
+        config = tmp_path / ".claude" / "mcp.json"
+        config.parent.mkdir(parents=True)
+        config.write_text("NOT JSON")
+
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+
+        assert result == {}
+
+    def test_read_mcp_servers_includes_env(self, tmp_path: Path) -> None:
+        config = tmp_path / ".claude" / "mcp.json"
+        config.parent.mkdir(parents=True)
+        config.write_text(
+            json.dumps(
+                {
+                    "mcpServers": {
+                        "env-server": {
+                            "command": "uvx",
+                            "args": [],
+                            "env": {"MY_VAR": "value"},
+                        }
+                    }
+                }
+            )
+        )
+
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+
+        assert result["env-server"].env == {"MY_VAR": "value"}
+
+    def test_read_mcp_servers_parses_url_entry(self, tmp_path: Path) -> None:
+        config = tmp_path / ".claude" / "mcp.json"
+        config.parent.mkdir(parents=True)
+        config.write_text(json.dumps({"mcpServers": {"remote": {"url": "https://example.com/mcp"}}}))
+
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+
+        assert "remote" in result
+        assert result["remote"].url == "https://example.com/mcp"
+        assert result["remote"].command is None

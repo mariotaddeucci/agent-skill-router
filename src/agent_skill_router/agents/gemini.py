@@ -7,10 +7,13 @@ from typing import TYPE_CHECKING
 
 from agent_skill_router.agents._base import (
     _DEFAULT_MCP_CONFIG,
+    _SELF_SERVER_NAME,
     AgentSetupProvider,
     McpConfig,
+    NormalizedMcpServer,
     PromptSlashCommand,
     SlashCommand,
+    _normalize_mcpserver_entry,
 )
 
 if TYPE_CHECKING:
@@ -128,3 +131,26 @@ class GeminiSetupProvider(AgentSetupProvider):
                     )
                 )
         return commands
+
+    def read_mcp_servers(self, roots: list[Path] | None = None) -> dict[str, NormalizedMcpServer]:
+        """Read MCP server entries from ``.gemini/settings.json`` under each root.
+
+        Parses the ``mcpServers`` key of Gemini CLI's JSON config. The
+        ``agent-skill-router`` entry is always excluded.
+        """
+        result: dict[str, NormalizedMcpServer] = {}
+        for root in roots or [Path.cwd(), Path.home()]:
+            config_file = root / ".gemini" / "settings.json"
+            if not config_file.exists():
+                continue
+            try:
+                data: dict = json.loads(config_file.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                continue
+            for name, entry in data.get("mcpServers", {}).items():
+                if name == _SELF_SERVER_NAME or name in result:
+                    continue
+                normalized = _normalize_mcpserver_entry(entry)
+                if normalized is not None:
+                    result[name] = normalized
+        return result

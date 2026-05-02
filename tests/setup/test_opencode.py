@@ -82,3 +82,89 @@ class TestOpenCodeSetupProvider:
         assert data["theme"] == "dark"
         assert data["model"] == "gpt-4"
         assert "agent-skill-router" in data["mcp"]
+
+    def test_read_mcp_servers_returns_empty_when_no_config(self, tmp_path: Path) -> None:
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+        assert result == {}
+
+    def test_read_mcp_servers_parses_workspace_mcp_key(self, tmp_path: Path) -> None:
+        config = tmp_path / ".opencode" / "mcp.json"
+        config.parent.mkdir(parents=True)
+        config.write_text(
+            json.dumps(
+                {
+                    "mcp": {
+                        "ws-server": {
+                            "type": "local",
+                            "command": ["uvx", "pkg"],
+                            "enabled": True,
+                        }
+                    }
+                }
+            )
+        )
+
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+
+        assert "ws-server" in result
+        assert result["ws-server"].command == "uvx"
+        assert result["ws-server"].args == ["pkg"]
+
+    def test_read_mcp_servers_parses_user_opencode_json(self, tmp_path: Path) -> None:
+        config = tmp_path / ".config" / "opencode" / "opencode.json"
+        config.parent.mkdir(parents=True)
+        config.write_text(
+            json.dumps(
+                {
+                    "mcp": {
+                        "my-tool": {
+                            "type": "local",
+                            "command": ["uvx", "my-pkg", "run"],
+                            "enabled": True,
+                        }
+                    }
+                }
+            )
+        )
+
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+
+        assert "my-tool" in result
+        assert result["my-tool"].command == "uvx"
+        assert result["my-tool"].args == ["my-pkg", "run"]
+
+    def test_read_mcp_servers_excludes_self(self, tmp_path: Path) -> None:
+        config = tmp_path / ".config" / "opencode" / "opencode.json"
+        config.parent.mkdir(parents=True)
+        config.write_text(
+            json.dumps(
+                {
+                    "mcp": {
+                        "agent-skill-router": {
+                            "type": "local",
+                            "command": ["uv", "run", "agent-skill-router", "run"],
+                            "enabled": True,
+                        },
+                        "other": {
+                            "type": "local",
+                            "command": ["uvx", "other-pkg"],
+                            "enabled": True,
+                        },
+                    }
+                }
+            )
+        )
+
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+
+        assert "agent-skill-router" not in result
+        assert "other" in result
+
+    def test_read_mcp_servers_skips_corrupt_json(self, tmp_path: Path) -> None:
+        config = tmp_path / ".config" / "opencode" / "opencode.json"
+        config.parent.mkdir(parents=True)
+        config.write_text("NOT JSON")
+
+        result = self.provider.read_mcp_servers(roots=[tmp_path])
+
+        assert result == {}
