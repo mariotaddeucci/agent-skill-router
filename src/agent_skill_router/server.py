@@ -381,18 +381,16 @@ def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = Non
                 seen_servers.add(server_name)
 
                 if server.url:
-                    url = server.url
                     mcp.add_provider(
-                        ProxyProvider(lambda u=url: ProxyClient(u)),
+                        ProxyProvider(lambda url=server.url: ProxyClient(url)),
                         namespace=server_name,
                     )
                 elif server.command:
-                    cmd_str = server.command
-                    args = server.args
-                    env = server.env if server.env else None
                     mcp.add_provider(
                         ProxyProvider(
-                            lambda c=cmd_str, a=args, e=env: ProxyClient(StdioTransport(command=c, args=a, env=e))
+                            lambda cmd=server.command, args=server.args, env=server.env or None: ProxyClient(
+                                StdioTransport(command=cmd, args=args, env=env)
+                            )
                         ),
                         namespace=server_name,
                     )
