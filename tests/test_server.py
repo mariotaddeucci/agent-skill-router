@@ -146,3 +146,70 @@ async def test_extra_dir_supporting_files_are_listed(all_disabled_settings, skil
         uris = [str(r.uri) for r in resources]
         # supporting_files="resources" — reference.md must appear individually
         assert any("reference.md" in u for u in uris)
+
+
+# ---------------------------------------------------------------------------
+# list_skills tool
+# ---------------------------------------------------------------------------
+
+
+async def test_list_skills_returns_skill_names(all_disabled_settings, skill_dir):
+    settings = all_disabled_settings.model_copy(update={"extra_dirs": [ExtraDirectory(path=skill_dir)]})
+    mcp = build_mcp(settings)
+    async with Client(mcp) as client:
+        result = await client.call_tool("list_skills", {})
+        text = result.content[0].text  # type: ignore[union-attr]
+        assert "my-skill" in text
+
+
+async def test_list_skills_empty_when_no_skills(all_disabled_settings):
+    mcp = build_mcp(all_disabled_settings)
+    async with Client(mcp) as client:
+        result = await client.call_tool("list_skills", {})
+        assert "No skills" in result.content[0].text  # type: ignore[union-attr]
+
+
+# ---------------------------------------------------------------------------
+# get_skill tool
+# ---------------------------------------------------------------------------
+
+
+async def test_get_skill_returns_skill_md_content(all_disabled_settings, skill_dir):
+    settings = all_disabled_settings.model_copy(update={"extra_dirs": [ExtraDirectory(path=skill_dir)]})
+    mcp = build_mcp(settings)
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_skill", {"name": "my-skill"})
+        text = result.content[0].text  # type: ignore[union-attr]
+        assert "My Skill" in text
+
+
+async def test_get_skill_includes_supporting_files(all_disabled_settings, skill_dir_with_assets):
+    settings = all_disabled_settings.model_copy(update={"extra_dirs": [ExtraDirectory(path=skill_dir_with_assets)]})
+    mcp = build_mcp(settings)
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_skill", {"name": "rich-skill"})
+        text = result.content[0].text  # type: ignore[union-attr]
+        assert "Rich Skill" in text
+        assert "reference.md" in text
+        assert "Extra content" in text
+
+
+async def test_get_skill_skill_md_comes_before_supporting_files(all_disabled_settings, skill_dir_with_assets):
+    settings = all_disabled_settings.model_copy(update={"extra_dirs": [ExtraDirectory(path=skill_dir_with_assets)]})
+    mcp = build_mcp(settings)
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_skill", {"name": "rich-skill"})
+        text = result.content[0].text  # type: ignore[union-attr]
+        skill_md_pos = text.index("Rich Skill")
+        reference_header_pos = text.index("--- reference.md ---")
+        assert skill_md_pos < reference_header_pos
+
+
+async def test_get_skill_unknown_name_returns_available_list(all_disabled_settings, skill_dir):
+    settings = all_disabled_settings.model_copy(update={"extra_dirs": [ExtraDirectory(path=skill_dir)]})
+    mcp = build_mcp(settings)
+    async with Client(mcp) as client:
+        result = await client.call_tool("get_skill", {"name": "does-not-exist"})
+        text = result.content[0].text  # type: ignore[union-attr]
+        assert "not found" in text
+        assert "my-skill" in text

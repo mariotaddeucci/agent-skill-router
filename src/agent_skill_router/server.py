@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastmcp import FastMCP
+from fastmcp.exceptions import NotFoundError
 from fastmcp.server.providers.skills import (
     ClaudeSkillsProvider,
     CodexSkillsProvider,
@@ -244,7 +245,7 @@ def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = Non
     # supporting_files="resources" ensures every file in every skill is
     # individually listed, not hidden behind the manifest template.
 
-    for attr, provider_cls, roots_by_level_template in _PROVIDER_ROOTS:
+    for attr, _provider_cls, roots_by_level_template in _PROVIDER_ROOTS:
         if not settings.is_provider_enabled(attr):
             continue
 
@@ -257,14 +258,7 @@ def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = Non
         if not roots:
             continue
 
-        # For vendor classes (single fixed root set), use the vendor class directly
-        # only when all their roots survived the filter — otherwise fall back to
-        # SkillsDirectoryProvider with just the allowed subset.
-        all_roots = roots_by_level.get("workspace", []) + roots_by_level.get("user", [])
-        if provider_cls is not SkillsDirectoryProvider and set(roots) == {r for r in all_roots if r.exists()}:
-            mcp.add_provider(provider_cls(supporting_files="resources"))
-        else:
-            mcp.add_provider(SkillsDirectoryProvider(roots=roots, supporting_files="resources"))
+        mcp.add_provider(SkillsDirectoryProvider(roots=roots, supporting_files="resources"))
 
     # --- Bundled skills (shipped with this package, not affected by scope flags) ---
     if settings.enable_bundled and _BUNDLED_SKILLS_PATH.exists():
@@ -275,6 +269,76 @@ def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = Non
         if not extra.path.exists():
             continue
         mcp.add_provider(SkillsDirectoryProvider(roots=[extra.path], supporting_files="resources"))
+
+    # --- Tool: list_skills ---
+    @mcp.tool(
+        name="list_skills",
+        description=(
+            "List all available skills by name and description. "
+            "Call this tool to discover which skills are loaded in this session. "
+            "Each skill exposes its full content as MCP resources under skill://{name}/ — "
+            "use get_skill to read the full instructions and all supporting files."
+        ),
+    )
+    async def list_skills() -> str:
+        """Return a summary of every available skill with name and description."""
+        resources = await mcp.list_resources()
+        lines: list[str] = []
+        for resource in resources:
+            uri = str(resource.uri)
+            if uri.endswith("/SKILL.md"):
+                skill_name = uri.removeprefix("skill://").removesuffix("/SKILL.md")
+                lines.append(f"- **{skill_name}**: {resource.description}")
+        if not lines:
+            return "No skills are currently available."
+        return "Available skills (use `get_skill` to load the full instructions):\n\n" + "\n".join(lines)
+
+    # --- Tool: get_skill ---
+    @mcp.tool(
+        name="get_skill",
+        description=(
+            "Load the full instructions of a skill by name, including all supporting files. "
+            "Use `list_skills` first to discover available skill names, "
+            "then call this tool with the exact skill name to get the complete SKILL.md content "
+            "together with every supporting file bundled in that skill. "
+            "The content is the authoritative instructions you MUST follow for that task — "
+            "read every section carefully before proceeding."
+        ),
+    )
+    async def get_skill(name: str) -> str:
+        """
+        Args:
+            name: Exact skill name as returned by list_skills (e.g. 'pytest-coverage').
+        """
+        prefix = f"skill://{name}/"
+        all_resources = await mcp.list_resources()
+        skill_uris = sorted(
+            (str(r.uri) for r in all_resources if str(r.uri).startswith(prefix)),
+            key=lambda u: (0 if u.endswith("/SKILL.md") else 1, u),
+        )
+        if not skill_uris:
+            available = await list_skills()
+            return f"Skill '{name}' not found.\n\n{available}"
+        sections: list[str] = []
+        for uri in skill_uris:
+            relative_path = uri.removeprefix(prefix)
+            try:
+                resource_result = await mcp.read_resource(uri)
+            except NotFoundError:
+                continue
+            file_parts: list[str] = []
+            for content in resource_result.contents:
+                if isinstance(content.content, str):
+                    file_parts.append(content.content)
+                elif isinstance(content.content, bytes):
+                    file_parts.append(content.content.decode())
+            if file_parts:
+                file_body = "\n".join(file_parts)
+                if relative_path == "SKILL.md":
+                    sections.append(file_body)
+                else:
+                    sections.append(f"--- {relative_path} ---\n{file_body}")
+        return "\n\n".join(sections)
 
     # --- Slash commands from agent native prompt files (cross-agent sharing) ---
     # Reads each agent's native command format and registers them as MCP prompts.
