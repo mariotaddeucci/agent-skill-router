@@ -1,187 +1,279 @@
----
-type: analysis
-title: Documentation Gaps - Loop 00001
-created: 2026-05-02
-tags:
-  - documentation
-  - coverage
-  - gaps
-related:
-  - '[[LOOP_00001_DOC_REPORT]]'
----
-
 # Documentation Gaps - Loop 00001
 
 ## Summary
-- **Total Gaps Found:** 8
-- **By Type:** 8 Functions, 0 Classes, 0 Types, 0 Modules
-- **By Visibility:** 1 Public API, 7 Internal API
+- **Total Gaps Found:** 12
+- **By Type:** 10 Functions/Methods, 1 Class, 1 Type Alias
+- **By Visibility:** 2 Public API, 8 Internal API, 2 Utility
+- **Overall Coverage:** 89.2% (target: 90%, gap: 0.8%)
+
+---
 
 ## Gap List
 
-### GAP-001: `build_mcp`
-- **File:** `src/agent_skill_router/server.py`
-- **Line:** 190
-- **Type:** Function
+### GAP-001: `Settings` class
+- **File:** `src/agent_skill_router/settings.py`
+- **Line:** 13
+- **Type:** Class
 - **Visibility:** PUBLIC API
-- **Complexity:** COMPLEX
-- **Current State:** No docs (has inline comments but no top-level docstring)
+- **Complexity:** MODERATE
+- **Current State:** No docs (fields documented via `Field(description=...)` but no class-level docstring)
 - **Why It Needs Docs:**
-  - Primary public entry point exported from `agent_skill_router.__init__`
-  - Called by `cli.py` and importable directly by library consumers
-  - Accepts two optional parameters whose interaction and defaults are non-obvious
-  - Returns a `FastMCP` instance — what it exposes is undocumented
+  - All configuration flows through this class; it is the primary extension point for operators
+  - Pydantic `Field` descriptions are not surfaced in `help()` or IDEs the same way as a docstring
+  - Class purpose, env var prefix (`SKILL_ROUTER_`), and configuration approach should be stated
 - **Signature:**
   ```
-  def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = None) -> FastMCP
+  class Settings(BaseSettings)
   ```
 - **Documentation Needed:**
-  - [ ] Description
-  - [ ] Parameters (`settings`, `workspace_dir`)
-  - [ ] Return value (what the `FastMCP` instance exposes)
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
   - [ ] Examples
   - [ ] Error handling
 
 ---
 
-### GAP-002: `ClaudeAgentSetupProvider.list_prompts`
+### GAP-002: `SlashCommand` type alias
+- **File:** `src/agent_skill_router/agents/_base.py`
+- **Line:** 61
+- **Type:** Type alias
+- **Visibility:** PUBLIC API
+- **Complexity:** SIMPLE
+- **Current State:** No docs
+- **Why It Needs Docs:**
+  - It is a discriminated union; callers need to know the three variants and how the `type` discriminator works
+- **Signature:**
+  ```
+  SlashCommand = Annotated[PromptSlashCommand | ToolSlashCommand | ResourceSlashCommand, Field(discriminator="type")]
+  ```
+- **Documentation Needed:**
+  - [x] Description
+  - [ ] Parameters
+  - [ ] Return value
+  - [ ] Examples
+  - [ ] Error handling
+
+---
+
+### GAP-003: `ClaudeProvider.config_path_workspace`
 - **File:** `src/agent_skill_router/agents/claude.py`
-- **Line:** 111
-- **Type:** Function
+- **Line:** 44
+- **Type:** Method
 - **Visibility:** INTERNAL API
-- **Complexity:** MODERATE
+- **Complexity:** SIMPLE
 - **Current State:** No docs
 - **Why It Needs Docs:**
-  - Overrides abstract method from `AgentSetupProvider`; directory scanned (`.claude/commands/*.md`) is not obvious from the name alone
-  - Consistent one-liner docstring would match all other provider methods
+  - Overrides abstract base; semantic meaning of "workspace config path" differs per agent
+  - Returns `.claude/mcp.json` relative to `Path.cwd()`
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_workspace(self) -> Path
   ```
 - **Documentation Needed:**
-  - [ ] Description (mention `.claude/commands/*.md` path)
-  - [ ] Parameters (`roots`)
-  - [ ] Return value
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
+  - [ ] Examples
+  - [ ] Error handling
 
 ---
 
-### GAP-003: `CursorAgentSetupProvider.list_prompts`
+### GAP-004: `ClaudeProvider.config_path_user`
+- **File:** `src/agent_skill_router/agents/claude.py`
+- **Line:** 47
+- **Type:** Method
+- **Visibility:** INTERNAL API
+- **Complexity:** SIMPLE
+- **Current State:** No docs
+- **Why It Needs Docs:**
+  - Returns `~/.claude/mcp.json`; the user-level vs workspace distinction is significant
+- **Signature:**
+  ```
+  def config_path_user(self) -> Path
+  ```
+- **Documentation Needed:**
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
+  - [ ] Examples
+  - [ ] Error handling
+
+---
+
+### GAP-005: `CursorProvider.config_path_workspace`
 - **File:** `src/agent_skill_router/agents/cursor.py`
-- **Line:** 106
-- **Type:** Function
+- **Line:** 43
+- **Type:** Method
 - **Visibility:** INTERNAL API
-- **Complexity:** MODERATE
+- **Complexity:** SIMPLE
 - **Current State:** No docs
 - **Why It Needs Docs:**
-  - Same pattern as GAP-002; scanned path is `.cursor/prompts/*.md`
+  - Same pattern as GAP-003; Cursor uses a different config path convention
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_workspace(self) -> Path
   ```
 - **Documentation Needed:**
-  - [ ] Description (mention `.cursor/prompts/*.md` path)
-  - [ ] Parameters (`roots`)
-  - [ ] Return value
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
+  - [ ] Examples
+  - [ ] Error handling
 
 ---
 
-### GAP-004: `GithubCopilotAgentSetupProvider.list_prompts`
-- **File:** `src/agent_skill_router/agents/github_copilot.py`
-- **Line:** 109
-- **Type:** Function
+### GAP-006: `CursorProvider.config_path_user`
+- **File:** `src/agent_skill_router/agents/cursor.py`
+- **Line:** 46
+- **Type:** Method
 - **Visibility:** INTERNAL API
-- **Complexity:** MODERATE
+- **Complexity:** SIMPLE
 - **Current State:** No docs
 - **Why It Needs Docs:**
-  - Same pattern as GAP-002; scanned path is `.github/prompts/*.prompt.md`
+  - Same as GAP-004
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_user(self) -> Path
   ```
 - **Documentation Needed:**
-  - [ ] Description (mention `.github/prompts/*.prompt.md` path)
-  - [ ] Parameters (`roots`)
-  - [ ] Return value
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
+  - [ ] Examples
+  - [ ] Error handling
 
 ---
 
-### GAP-005: `OpencodeAgentSetupProvider.list_prompts`
-- **File:** `src/agent_skill_router/agents/opencode.py`
-- **Line:** 106
-- **Type:** Function
-- **Visibility:** INTERNAL API
-- **Complexity:** MODERATE
-- **Current State:** No docs
-- **Why It Needs Docs:**
-  - Same pattern as GAP-002; scanned path is `.opencode/prompts/*.md`
-- **Signature:**
-  ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
-  ```
-- **Documentation Needed:**
-  - [ ] Description (mention `.opencode/prompts/*.md` path)
-  - [ ] Parameters (`roots`)
-  - [ ] Return value
-
----
-
-### GAP-006: `GooseAgentSetupProvider.list_prompts`
-- **File:** `src/agent_skill_router/agents/goose.py`
-- **Line:** 171
-- **Type:** Function
-- **Visibility:** INTERNAL API
-- **Complexity:** MODERATE
-- **Current State:** No docs
-- **Why It Needs Docs:**
-  - Same pattern as GAP-002; scanned directory for Goose-specific prompt files
-- **Signature:**
-  ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
-  ```
-- **Documentation Needed:**
-  - [ ] Description (mention scanned path)
-  - [ ] Parameters (`roots`)
-  - [ ] Return value
-
----
-
-### GAP-007: `GeminiAgentSetupProvider.list_prompts`
+### GAP-007: `GeminiProvider.config_path_workspace`
 - **File:** `src/agent_skill_router/agents/gemini.py`
-- **Line:** 105
-- **Type:** Function
+- **Line:** 42
+- **Type:** Method
 - **Visibility:** INTERNAL API
-- **Complexity:** MODERATE
+- **Complexity:** SIMPLE
 - **Current State:** No docs
 - **Why It Needs Docs:**
-  - Same pattern as GAP-002; scanned directory for Gemini-specific prompt files
+  - Same pattern as GAP-003
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_workspace(self) -> Path
   ```
 - **Documentation Needed:**
-  - [ ] Description (mention scanned path)
-  - [ ] Parameters (`roots`)
-  - [ ] Return value
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
+  - [ ] Examples
+  - [ ] Error handling
 
 ---
 
-### GAP-008: `CodexAgentSetupProvider.list_prompts`
-- **File:** `src/agent_skill_router/agents/codex.py`
-- **Line:** 141
-- **Type:** Function
+### GAP-008: `GeminiProvider.config_path_user`
+- **File:** `src/agent_skill_router/agents/gemini.py`
+- **Line:** 45
+- **Type:** Method
 - **Visibility:** INTERNAL API
-- **Complexity:** MODERATE
+- **Complexity:** SIMPLE
 - **Current State:** No docs
 - **Why It Needs Docs:**
-  - Same pattern as GAP-002; scanned directory for Codex-specific prompt files
+  - Same as GAP-004
 - **Signature:**
   ```
-  def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
+  def config_path_user(self) -> Path
   ```
 - **Documentation Needed:**
-  - [ ] Description (mention scanned path)
-  - [ ] Parameters (`roots`)
-  - [ ] Return value
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
+  - [ ] Examples
+  - [ ] Error handling
+
+---
+
+### GAP-009: `GithubCopilotProvider.config_path_workspace`
+- **File:** `src/agent_skill_router/agents/github_copilot.py`
+- **Line:** 42
+- **Type:** Method
+- **Visibility:** INTERNAL API
+- **Complexity:** SIMPLE
+- **Current State:** No docs
+- **Why It Needs Docs:**
+  - Same pattern as GAP-003
+- **Signature:**
+  ```
+  def config_path_workspace(self) -> Path
+  ```
+- **Documentation Needed:**
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
+  - [ ] Examples
+  - [ ] Error handling
+
+---
+
+### GAP-010: `GithubCopilotProvider.config_path_user`
+- **File:** `src/agent_skill_router/agents/github_copilot.py`
+- **Line:** 45
+- **Type:** Method
+- **Visibility:** INTERNAL API
+- **Complexity:** SIMPLE
+- **Current State:** No docs
+- **Why It Needs Docs:**
+  - Same as GAP-004
+- **Signature:**
+  ```
+  def config_path_user(self) -> Path
+  ```
+- **Documentation Needed:**
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
+  - [ ] Examples
+  - [ ] Error handling
+
+---
+
+### GAP-011: `OpenCodeProvider.config_path_workspace`
+- **File:** `src/agent_skill_router/agents/opencode.py`
+- **Line:** 39
+- **Type:** Method
+- **Visibility:** INTERNAL API
+- **Complexity:** SIMPLE
+- **Current State:** No docs
+- **Why It Needs Docs:**
+  - Same pattern as GAP-003
+- **Signature:**
+  ```
+  def config_path_workspace(self) -> Path
+  ```
+- **Documentation Needed:**
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
+  - [ ] Examples
+  - [ ] Error handling
+
+---
+
+### GAP-012: `OpenCodeProvider.config_path_user`
+- **File:** `src/agent_skill_router/agents/opencode.py`
+- **Line:** 42
+- **Type:** Method
+- **Visibility:** INTERNAL API
+- **Complexity:** SIMPLE
+- **Current State:** No docs
+- **Why It Needs Docs:**
+  - Same as GAP-004
+- **Signature:**
+  ```
+  def config_path_user(self) -> Path
+  ```
+- **Documentation Needed:**
+  - [x] Description
+  - [ ] Parameters
+  - [x] Return value
+  - [ ] Examples
+  - [ ] Error handling
 
 ---
 
@@ -189,32 +281,50 @@ related:
 
 | Module | Gap Count | Types |
 |--------|-----------|-------|
-| `src/agent_skill_router/server.py` | 1 | 1 Function |
-| `src/agent_skill_router/agents/claude.py` | 1 | 1 Function |
-| `src/agent_skill_router/agents/cursor.py` | 1 | 1 Function |
-| `src/agent_skill_router/agents/github_copilot.py` | 1 | 1 Function |
-| `src/agent_skill_router/agents/opencode.py` | 1 | 1 Function |
-| `src/agent_skill_router/agents/goose.py` | 1 | 1 Function |
-| `src/agent_skill_router/agents/gemini.py` | 1 | 1 Function |
-| `src/agent_skill_router/agents/codex.py` | 1 | 1 Function |
+| `src/agent_skill_router/agents/claude.py` | 2 | 2 Methods |
+| `src/agent_skill_router/agents/cursor.py` | 2 | 2 Methods |
+| `src/agent_skill_router/agents/gemini.py` | 2 | 2 Methods |
+| `src/agent_skill_router/agents/github_copilot.py` | 2 | 2 Methods |
+| `src/agent_skill_router/agents/opencode.py` | 2 | 2 Methods |
+| `src/agent_skill_router/agents/_base.py` | 1 | 1 Type alias |
+| `src/agent_skill_router/settings.py` | 1 | 1 Class |
 
 ## Gaps by Type
 
-### Functions
+### Classes
 | Name | File | Visibility | Complexity |
 |------|------|------------|------------|
-| `build_mcp` | `src/agent_skill_router/server.py` | PUBLIC API | COMPLEX |
-| `ClaudeAgentSetupProvider.list_prompts` | `src/agent_skill_router/agents/claude.py` | INTERNAL API | MODERATE |
-| `CursorAgentSetupProvider.list_prompts` | `src/agent_skill_router/agents/cursor.py` | INTERNAL API | MODERATE |
-| `GithubCopilotAgentSetupProvider.list_prompts` | `src/agent_skill_router/agents/github_copilot.py` | INTERNAL API | MODERATE |
-| `OpencodeAgentSetupProvider.list_prompts` | `src/agent_skill_router/agents/opencode.py` | INTERNAL API | MODERATE |
-| `GooseAgentSetupProvider.list_prompts` | `src/agent_skill_router/agents/goose.py` | INTERNAL API | MODERATE |
-| `GeminiAgentSetupProvider.list_prompts` | `src/agent_skill_router/agents/gemini.py` | INTERNAL API | MODERATE |
-| `CodexAgentSetupProvider.list_prompts` | `src/agent_skill_router/agents/codex.py` | INTERNAL API | MODERATE |
+| `Settings` | `src/agent_skill_router/settings.py` | PUBLIC API | MODERATE |
+
+### Types/Interfaces
+| Name | File | Visibility | Complexity |
+|------|------|------------|------------|
+| `SlashCommand` | `src/agent_skill_router/agents/_base.py` | PUBLIC API | SIMPLE |
+
+### Methods
+| Name | File | Visibility | Complexity |
+|------|------|------------|------------|
+| `ClaudeProvider.config_path_workspace` | `src/agent_skill_router/agents/claude.py` | INTERNAL API | SIMPLE |
+| `ClaudeProvider.config_path_user` | `src/agent_skill_router/agents/claude.py` | INTERNAL API | SIMPLE |
+| `CursorProvider.config_path_workspace` | `src/agent_skill_router/agents/cursor.py` | INTERNAL API | SIMPLE |
+| `CursorProvider.config_path_user` | `src/agent_skill_router/agents/cursor.py` | INTERNAL API | SIMPLE |
+| `GeminiProvider.config_path_workspace` | `src/agent_skill_router/agents/gemini.py` | INTERNAL API | SIMPLE |
+| `GeminiProvider.config_path_user` | `src/agent_skill_router/agents/gemini.py` | INTERNAL API | SIMPLE |
+| `GithubCopilotProvider.config_path_workspace` | `src/agent_skill_router/agents/github_copilot.py` | INTERNAL API | SIMPLE |
+| `GithubCopilotProvider.config_path_user` | `src/agent_skill_router/agents/github_copilot.py` | INTERNAL API | SIMPLE |
+| `OpenCodeProvider.config_path_workspace` | `src/agent_skill_router/agents/opencode.py` | INTERNAL API | SIMPLE |
+| `OpenCodeProvider.config_path_user` | `src/agent_skill_router/agents/opencode.py` | INTERNAL API | SIMPLE |
 
 ## Related Exports
 
 Exports that should be documented together:
 
-- **Group A:** All 7 `list_prompts` overrides in agent provider files — identical signatures, same pattern; document the ABC method in `_base.py` first, then add one-liners in each override mentioning the specific directory scanned.
-- **Group B:** `build_mcp` in `server.py` — standalone, highest priority as the primary public API.
+- **Group A:** `config_path_workspace` and `config_path_user` across all 5 agent providers — identical pattern, should use the same docstring template
+- **Group B:** `Settings` class — standalone, highest priority
+- **Group C:** `SlashCommand` type alias — should be documented alongside `PromptSlashCommand`, `ToolSlashCommand`, `ResourceSlashCommand` in `_base.py`
+
+## Recommended Fix Order
+
+1. `Settings` class docstring — highest visibility, single change
+2. `SlashCommand` type alias docstring — small, high clarity gain
+3. `config_path_workspace` / `config_path_user` in all 5 agents — use a shared one-liner template: `"Return the path to the MCP config file for workspace/user-level installation."`
