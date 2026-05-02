@@ -2,10 +2,10 @@
 
 ## Context
 - **Playbook:** Documentation
-- **Agent:** {{AGENT_NAME}}
-- **Project:** {{AGENT_PATH}}
-- **Auto Run Folder:** {{AUTORUN_FOLDER}}
-- **Loop:** {{LOOP_NUMBER}}
+- **Agent:** Bob
+- **Project:** /Users/mariotaddeucci/Documents/GitHub/agent-skill-router
+- **Auto Run Folder:** /Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks
+- **Loop:** 00001
 
 ## Objective
 
@@ -17,11 +17,11 @@ Measure current documentation coverage and identify the documentation landscape.
 2. **Count documented vs undocumented exports** - Functions, classes, types
 3. **Calculate coverage percentage** - Documented / Total exports
 4. **Identify documentation patterns** - How existing docs are structured
-5. **Output report** to `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_DOC_REPORT.md`
+5. **Output report** to `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_DOC_REPORT.md`
 
 ## Analysis Checklist
 
-- [ ] **Measure documentation coverage (if needed)**: First check if `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_DOC_REPORT.md` already exists with coverage data (look for "Overall Coverage:" with a percentage). If it does, skip the survey and mark this task complete—the coverage report is already in place. If it doesn't exist, survey the codebase for exported/public functions, classes, and types. Count how many have doc comments vs how many are undocumented. Calculate the percentage. Identify the existing documentation style and conventions. Output to `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_DOC_REPORT.md`.
+- [x] **Measure documentation coverage (if needed)**: First check if `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_DOC_REPORT.md` already exists with coverage data (look for "Overall Coverage:" with a percentage). If it does, skip the survey and mark this task complete—the coverage report is already in place. If it doesn't exist, survey the codebase for exported/public functions, classes, and types. Count how many have doc comments vs how many are undocumented. Calculate the percentage. Identify the existing documentation style and conventions. Output to `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_DOC_REPORT.md`.
 
 ## What to Count
 
@@ -64,10 +64,10 @@ Common patterns to identify:
 
 ## Output Format
 
-Create/update `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_DOC_REPORT.md` with:
+Create/update `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_DOC_REPORT.md` with:
 
 ```markdown
-# Documentation Coverage Report - Loop {{LOOP_NUMBER}}
+# Documentation Coverage Report - Loop 00001
 
 ## Summary
 - **Overall Coverage:** [XX.X%]
