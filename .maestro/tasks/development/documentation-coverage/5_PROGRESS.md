@@ -2,10 +2,10 @@
 
 ## Context
 - **Playbook:** Documentation
-- **Agent:** {{AGENT_NAME}}
-- **Project:** {{AGENT_PATH}}
-- **Auto Run Folder:** {{AUTORUN_FOLDER}}
-- **Loop:** {{LOOP_NUMBER}}
+- **Agent:** Bob
+- **Project:** /Users/mariotaddeucci/Documents/GitHub/agent-skill-router
+- **Auto Run Folder:** /Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks
+- **Loop:** 00001
 
 ## Purpose
 
@@ -20,16 +20,18 @@ This document is the **coverage gate** for the documentation pipeline. It checks
 
 ## Coverage Check
 
-- [ ] **Check coverage and decide**: Calculate current documentation coverage. If coverage is below 90% AND there are still `PENDING` items with PUBLIC/INTERNAL visibility and HIGH/CRITICAL importance in LOOP_{{LOOP_NUMBER}}_PLAN.md, then reset documents 1-4 to continue the loop. If coverage >= 90% OR no documentable work remains, do NOT reset anything - allow the pipeline to exit.
+- [x] **Check coverage and decide**: Calculate current documentation coverage. If coverage is below 90% AND there are still `PENDING` items with PUBLIC/INTERNAL visibility and HIGH/CRITICAL importance in LOOP_00001_PLAN.md, then reset documents 1-4 to continue the loop. If coverage >= 90% OR no documentable work remains, do NOT reset anything - allow the pipeline to exit.
+
+<!-- Coverage: 81.1% (77/95 public exports documented). 4 PENDING items remain in LOOP_00001_PLAN.md. Resetting documents 1-4 to continue loop. -->
 
 ## Reset Tasks (Only if coverage < 90% AND work remains)
 
 If the coverage check above determines we need to continue, reset all tasks in the following documents:
 
-- [ ] **Reset 1_ANALYZE.md**: Uncheck all tasks in `{{AUTORUN_FOLDER}}/1_ANALYZE.md`
-- [ ] **Reset 2_FIND_GAPS.md**: Uncheck all tasks in `{{AUTORUN_FOLDER}}/2_FIND_GAPS.md`
-- [ ] **Reset 3_EVALUATE.md**: Uncheck all tasks in `{{AUTORUN_FOLDER}}/3_EVALUATE.md`
-- [ ] **Reset 4_IMPLEMENT.md**: Uncheck all tasks in `{{AUTORUN_FOLDER}}/4_IMPLEMENT.md`
+- [x] **Reset 1_ANALYZE.md**: Uncheck all tasks in `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/1_ANALYZE.md`
+- [x] **Reset 2_FIND_GAPS.md**: Uncheck all tasks in `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/2_FIND_GAPS.md`
+- [x] **Reset 3_EVALUATE.md**: Uncheck all tasks in `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/3_EVALUATE.md`
+- [x] **Reset 4_IMPLEMENT.md**: Uncheck all tasks in `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/4_IMPLEMENT.md`
 
 **IMPORTANT**: Only reset documents 1-4 if coverage < 90% AND there are PENDING items to document. If we've reached 90% or there's no more work, leave these reset tasks unchecked to allow the pipeline to exit.
 
@@ -72,13 +74,13 @@ Before making a decision, calculate coverage:
 
 | Metric | Value |
 |--------|-------|
-| **Documented Exports** | ___ |
-| **Total Exports** | ___ |
-| **Current Coverage** | ___ % |
+| **Documented Exports** | 77 |
+| **Total Exports** | 95 |
+| **Current Coverage** | 81.1% |
 | **Target** | 90% |
-| **Gap** | ___ % |
-| **PENDING Items** | ___ |
-| **Auto-Documentable** | ___ |
+| **Gap** | 8.9% |
+| **PENDING Items** | 4 |
+| **Auto-Documentable** | 4 |
 
 ## Coverage History
 
@@ -86,7 +88,7 @@ Track progress across loops:
 
 | Loop | Coverage | Docs Added | Cumulative Gain |
 |------|----------|------------|-----------------|
-| 1 | ___ % | ___ | +___ % |
+| 1 | 81.1% | 1 (`build_mcp`) | +___ % |
 | 2 | ___ % | ___ | +___ % |
 | ... | ... | ... | ... |
 

@@ -21,7 +21,7 @@ Write documentation for `PENDING` gaps from the evaluation phase. Create high-qu
 
 ## Implementation Checklist
 
-- [x] **Write documentation (or skip if none)**: Read /Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_PLAN.md. If the file doesn't exist OR contains no items with status exactly `PENDING`, mark this task complete without changes. Otherwise, write documentation for ONE `PENDING` item with PUBLIC/INTERNAL visibility and HIGH/CRITICAL importance. Follow project documentation conventions. Update status to `IMPLEMENTED` in the plan. Log to DOC_LOG. Only document ONE export per task.
+- [ ] **Write documentation (or skip if none)**: Read /Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_PLAN.md. If the file doesn't exist OR contains no items with status exactly `PENDING`, mark this task complete without changes. Otherwise, write documentation for ONE `PENDING` item with PUBLIC/INTERNAL visibility and HIGH/CRITICAL importance. Follow project documentation conventions. Update status to `IMPLEMENTED` in the plan. Log to DOC_LOG. Only document ONE export per task.
 
 <!-- Completed: Documented `build_mcp` (DOC-001) in src/agent_skill_router/server.py. Status updated to IMPLEMENTED in LOOP_00001_PLAN.md. Logged to DOC_LOG_Bob_2026-05-02.md. -->
 
