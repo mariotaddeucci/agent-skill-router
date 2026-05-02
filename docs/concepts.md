@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Concepts
 
 This page explains the core ideas behind Agent Skill Router: what it is, how it works, and why it is structured the way it is.

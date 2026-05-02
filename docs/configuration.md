@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Configuration
 
 Agent Skill Router is configured entirely through environment variables. All variables use the `SKILL_ROUTER_` prefix and follow pydantic-settings conventions.

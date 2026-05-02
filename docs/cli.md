@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # CLI Reference
 
 The `agent-skill-router` command-line tool manages skills, slash commands, and the MCP server.

@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Writing Skills
 
 A **skill** is a directory that teaches an AI agent how to perform a specific, reusable task. The router discovers skills from many locations and exposes them to every connected agent via MCP.

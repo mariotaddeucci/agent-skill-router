@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Supported Agents
 
 Agent Skill Router integrates with every major AI coding agent. Each agent has two roles:

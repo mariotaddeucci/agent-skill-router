@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Agent Skill Router
 
 **Agent Skill Router** is an MCP (Model Context Protocol) server that acts as a **universal proxy** between AI coding agents. It discovers skills and slash commands from any agent's native format and makes them available to every other agent — with zero manual conversion.

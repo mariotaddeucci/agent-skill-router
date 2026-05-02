@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Slash Commands
 
 Agent Skill Router exposes slash commands written for one agent as MCP prompts accessible to every other agent. This page explains how the sharing works and what native formats are supported.
