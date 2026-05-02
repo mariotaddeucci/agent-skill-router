@@ -1087,6 +1087,11 @@
         ENV["SKILL_ROUTER_* env vars\n(pydantic-settings)"]
     end
 
+    subgraph "MCP Proxy"
+        READ["Read agent configs\n(.claude/mcp.json, etc.)"]
+        PROXY["ProxyProvider\nfor remote servers"]
+    end
+
     CMD_RUN --&gt; BUILD
     CMD_LIST --&gt; DISC
     CMD_INSTALL --&gt; INST
@@ -1095,8 +1100,12 @@
     CMD_SETUP --&gt; OTHERS
     ENV --&gt; BUILD
     ENV --&gt; CMD_LIST
+    ENV --&gt; READ
 
-    BUILD --&gt; MCP["FastMCP instance\n(resources + prompts)"]</code></pre>
+    BUILD --&gt; MCP["FastMCP instance\n(resources + prompts)"]
+    READ --&gt; PROXY
+    PROXY --&gt; MCP</code></pre>
+<p>The MCP proxy component (right side) reads MCP server entries from native agent config files and re-exposes them through <code>ProxyProvider</code>, making them accessible to any connected agent.</p>
 
 
 

@@ -724,6 +724,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#mcp-server-proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP server proxy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#extra-directories" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -938,6 +949,17 @@
     <span class="md-ellipsis">
       
         Per-agent toggles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mcp-server-proxy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP server proxy
       
     </span>
   </a>
@@ -1217,6 +1239,58 @@
 </tr>
 </tbody>
 </table>
+<h3 id="mcp-server-proxy">MCP server proxy<a class="headerlink" href="#mcp-server-proxy" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SKILL_ROUTER_ENABLE_MCP_PROXY</code></td>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>Read MCP servers from agent config files and proxy them to all connected agents</td>
+</tr>
+</tbody>
+</table>
+<p>When enabled, the router reads MCP server entries from each agent's config file and re-exposes them through a unified endpoint. This lets you configure an MCP server once (e.g., in Claude's <code>.claude/mcp.json</code>) and have it accessible from any other MCP-compatible agent.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph "Native config files"
+        C[".claude/mcp.json"]
+        CU[".cursor/mcp.json"]
+        O[".opencode/mcp.json"]
+    end
+
+    subgraph "Agent Skill Router (proxy)"
+        READ["Read config files"]
+        REG["Register as ProxyProvider"]
+    end
+
+    subgraph "Any connected agent"
+        A["Claude\nCursor\nCopilot\n..."]
+    end
+
+    C --&gt; READ
+    CU --&gt; READ
+    O --&gt; READ
+    READ --&gt; REG
+    REG --&gt; A</code></pre>
+<p>Supported config files:
+- <code>.claude/mcp.json</code> (Claude API)
+- <code>.cursor/mcp.json</code> (Cursor)
+- <code>.vscode/mcp.json</code> (GitHub Copilot / VS Code)
+- <code>.opencode/mcp.json</code> (OpenCode)
+- <code>~/.config/opencode/opencode.json</code> (OpenCode user config)</p>
+<p>Servers are identified by name. When the same server name exists in multiple configs, the first one found wins.</p>
+<div class="admonition tip">
+<p class="admonition-title">Use case</p>
+<p>If you use both Claude and Cursor, configure all your MCP servers in ONE agent's config file — Agent Skill Router makes them available to ALL agents automatically.</p>
+</div>
 <h3 id="extra-directories">Extra directories<a class="headerlink" href="#extra-directories" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
