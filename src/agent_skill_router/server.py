@@ -3,7 +3,9 @@ from pathlib import Path
 from typing import Literal
 
 from fastmcp import FastMCP
+from fastmcp.client.transports import StdioTransport
 from fastmcp.exceptions import NotFoundError
+from fastmcp.server.providers.proxy import ProxyClient, ProxyProvider
 from fastmcp.server.providers.skills import (
     ClaudeSkillsProvider,
     CodexSkillsProvider,
@@ -360,5 +362,37 @@ def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = Non
                 continue
             seen_prompt_names.add(cmd_name)
             mcp.prompt(name=cmd_name, description=cmd.description)(_static_prompt(cmd.prompt))
+
+    # --- Remote MCP server proxy (normalizes connections across agents) ---
+    # Reads each agent's config file and creates a ProxyProvider for every
+    # remote MCP server found, making them accessible from any connected agent.
+    if settings.enable_mcp_proxy:
+        proxy_roots: list[Path] = []
+        if settings.enable_workspace_level:
+            proxy_roots.append(ws)
+        if settings.enable_user_level:
+            proxy_roots.append(Path.home())
+
+        seen_servers: set[str] = set()
+        for provider in AGENT_PROVIDERS.values():
+            for server_name, server in provider.read_mcp_servers(proxy_roots or None).items():
+                if server_name in seen_servers:
+                    continue
+                seen_servers.add(server_name)
+
+                if server.url:
+                    mcp.add_provider(
+                        ProxyProvider(lambda url=server.url: ProxyClient(url)),
+                        namespace=server_name,
+                    )
+                elif server.command:
+                    mcp.add_provider(
+                        ProxyProvider(
+                            lambda cmd=server.command, args=server.args, env=server.env or None: ProxyClient(
+                                StdioTransport(command=cmd, args=args, env=env)
+                            )
+                        ),
+                        namespace=server_name,
+                    )
 
     return mcp

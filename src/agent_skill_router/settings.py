@@ -86,6 +86,16 @@ class Settings(BaseSettings):
         default=None, description="Enable OpenClaw managed skills (~/.openclaw/skills/)"
     )
 
+    # Proxy for remote MCP servers read from agent config files
+    enable_mcp_proxy: bool = Field(
+        default=True,
+        description=(
+            "Read MCP server entries from agent config files (Claude, Cursor, "
+            "GitHub Copilot, OpenCode, Goose, Gemini, Codex) and proxy them so "
+            "they are accessible from any connected agent."
+        ),
+    )
+
     def is_provider_enabled(self, attr: str) -> bool:
         """Return the effective enabled state for a vendor provider attribute.
 

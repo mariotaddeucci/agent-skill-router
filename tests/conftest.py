@@ -22,6 +22,7 @@ def all_disabled_settings(tmp_path):
         enable_opencode=False,
         enable_agents=False,
         enable_openclaw=False,
+        enable_mcp_proxy=False,
     )
 
 

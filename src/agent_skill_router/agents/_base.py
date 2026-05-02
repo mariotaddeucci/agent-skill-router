@@ -2,7 +2,7 @@
 
 import re
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Literal
 
@@ -18,6 +18,16 @@ class McpConfig:
 
     command: str
     args: list[str]
+
+
+@dataclass(frozen=True)
+class NormalizedMcpServer:
+    """A normalized MCP server entry read from an agent config file."""
+
+    command: str | None = None
+    args: list[str] = field(default_factory=list)
+    env: dict[str, str] = field(default_factory=dict)
+    url: str | None = None
 
 
 class BaseSlashCommand(BaseModel):
@@ -89,6 +99,47 @@ _DEFAULT_MCP_CONFIG = McpConfig(
     ],
 )
 
+#: Name of the agent-skill-router MCP server entry — excluded from proxy reads.
+_SELF_SERVER_NAME = "agent-skill-router"
+
+
+def _normalize_mcpserver_entry(entry: dict) -> NormalizedMcpServer | None:
+    """Convert an agent-specific MCP server dict to :class:`NormalizedMcpServer`.
+
+    Handles two shapes:
+
+    * Standard JSON (Claude, Cursor, GitHub Copilot, Gemini, Goose):
+      ``{"command": "uvx", "args": [...], "env": {...}}``
+    * OpenCode list-command JSON:
+      ``{"type": "local", "command": ["uvx", ...], "enabled": true}``
+    * Remote HTTP/SSE:
+      ``{"url": "https://..."}``
+    """
+    if not isinstance(entry, dict):
+        return None
+
+    url = entry.get("url")
+    if url:
+        env = {str(k): str(v) for k, v in entry.get("env", {}).items()}
+        return NormalizedMcpServer(url=str(url), env=env)
+
+    raw_command = entry.get("command")
+    if raw_command is None:
+        return None
+
+    if isinstance(raw_command, list):
+        # OpenCode uses command as a list: [executable, arg1, arg2, ...]
+        if not raw_command:
+            return None
+        cmd: str = str(raw_command[0])
+        args: list[str] = [str(a) for a in raw_command[1:]]
+    else:
+        cmd = str(raw_command)
+        args = [str(a) for a in entry.get("args", [])]
+
+    env = {str(k): str(v) for k, v in entry.get("env", {}).items()}
+    return NormalizedMcpServer(command=cmd, args=args, env=env)
+
 
 class AgentSetupProvider(ABC):
     """Base class for all agent MCP setup providers.
@@ -147,3 +198,16 @@ class AgentSetupProvider(ABC):
         objects. First-wins deduplication applies when the same command name
         appears in multiple roots.
         """
+
+    def read_mcp_servers(self, roots: list[Path] | None = None) -> dict[str, NormalizedMcpServer]:
+        """Read MCP server entries from this agent's config files.
+
+        Scans agent-specific config files under each path in *roots* and returns
+        a dict mapping server name to :class:`NormalizedMcpServer`. The entry
+        named ``agent-skill-router`` is always excluded to avoid self-proxying.
+        First-wins deduplication applies across multiple roots.
+
+        Returns an empty dict by default; providers that support reading MCP
+        server entries should override this method.
+        """
+        return {}

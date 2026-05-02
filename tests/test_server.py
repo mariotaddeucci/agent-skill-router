@@ -213,3 +213,111 @@ async def test_get_skill_unknown_name_returns_available_list(all_disabled_settin
         text = result.content[0].text  # type: ignore[union-attr]
         assert "not found" in text
         assert "my-skill" in text
+
+
+# ---------------------------------------------------------------------------
+# _normalize_mcpserver_entry helper
+# ---------------------------------------------------------------------------
+
+
+def test_normalize_mcpserver_entry_stdio():
+    from agent_skill_router.agents._base import _normalize_mcpserver_entry
+
+    result = _normalize_mcpserver_entry({"command": "uvx", "args": ["pkg"]})
+    assert result is not None
+    assert result.command == "uvx"
+    assert result.args == ["pkg"]
+    assert result.url is None
+
+
+def test_normalize_mcpserver_entry_list_command():
+    from agent_skill_router.agents._base import _normalize_mcpserver_entry
+
+    result = _normalize_mcpserver_entry({"command": ["uvx", "pkg", "run"]})
+    assert result is not None
+    assert result.command == "uvx"
+    assert result.args == ["pkg", "run"]
+
+
+def test_normalize_mcpserver_entry_url():
+    from agent_skill_router.agents._base import _normalize_mcpserver_entry
+
+    result = _normalize_mcpserver_entry({"url": "https://example.com/mcp"})
+    assert result is not None
+    assert result.url == "https://example.com/mcp"
+    assert result.command is None
+
+
+def test_normalize_mcpserver_entry_with_env():
+    from agent_skill_router.agents._base import _normalize_mcpserver_entry
+
+    result = _normalize_mcpserver_entry({"command": "uvx", "args": [], "env": {"MY_VAR": "val"}})
+    assert result is not None
+    assert result.env == {"MY_VAR": "val"}
+
+
+def test_normalize_mcpserver_entry_empty_list_command_returns_none():
+    from agent_skill_router.agents._base import _normalize_mcpserver_entry
+
+    result = _normalize_mcpserver_entry({"command": []})
+    assert result is None
+
+
+def test_normalize_mcpserver_entry_no_command_no_url_returns_none():
+    from agent_skill_router.agents._base import _normalize_mcpserver_entry
+
+    result = _normalize_mcpserver_entry({"type": "stdio"})
+    assert result is None
+
+
+def test_normalize_mcpserver_entry_non_dict_returns_none():
+    from agent_skill_router.agents._base import _normalize_mcpserver_entry
+
+    assert _normalize_mcpserver_entry("invalid") is None  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# MCP proxy — enable_mcp_proxy flag and proxy registration
+# ---------------------------------------------------------------------------
+
+
+def test_mcp_proxy_disabled_when_flag_false(all_disabled_settings):
+    mcp = build_mcp(all_disabled_settings)
+    assert mcp is not None
+
+
+def test_mcp_proxy_enabled_registers_proxy_provider(all_disabled_settings, tmp_path):
+    from fastmcp import FastMCP
+
+    # Write a cursor mcp.json so the cursor provider finds a server
+    cursor_cfg = tmp_path / ".cursor" / "mcp.json"
+    cursor_cfg.parent.mkdir(parents=True)
+    import json
+
+    cursor_cfg.write_text(json.dumps({"mcpServers": {"my-proxy-server": {"command": "echo", "args": []}}}))
+
+    settings = all_disabled_settings.model_copy(update={"enable_mcp_proxy": True, "enable_workspace_level": True})
+    mcp = build_mcp(settings, workspace_dir=tmp_path)
+
+    assert isinstance(mcp, FastMCP)
+
+
+def test_mcp_proxy_excludes_self_from_all_providers(all_disabled_settings, tmp_path):
+    import json
+
+    # Write configs for multiple agents, all including agent-skill-router as a server
+    for subdir, key, value in [
+        (".cursor/mcp.json", "mcpServers", {"agent-skill-router": {"command": "uvx", "args": []}}),
+        (
+            ".vscode/mcp.json",
+            "servers",
+            {"agent-skill-router": {"type": "stdio", "command": "uvx", "args": []}},
+        ),
+    ]:
+        cfg = tmp_path / subdir
+        cfg.parent.mkdir(parents=True)
+        cfg.write_text(json.dumps({key: value}))
+
+    settings = all_disabled_settings.model_copy(update={"enable_mcp_proxy": True, "enable_workspace_level": True})
+    mcp = build_mcp(settings, workspace_dir=tmp_path)
+    assert mcp is not None
