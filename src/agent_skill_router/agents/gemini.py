@@ -99,40 +99,32 @@ class GeminiSetupProvider(AgentSetupProvider):
             )
         return commands
 
-    def list_prompts(self, root: Path | None = None) -> list[SlashCommand]:
-        """Read prompts from ``.gemini/commands/*.toml`` under *root*.
-
-        Gemini CLI stores custom slash commands as TOML files under
-        ``.gemini/commands/``.  Each file uses ``description`` and ``prompt``
-        fields::
-
-            description = "Refactor selected code into a pure function."
-            prompt = "Please refactor the provided code..."
-
-        Subdirectory names become namespace prefixes (e.g.
-        ``git/commit.toml`` → ``/git:commit``).
-        """
-        commands_dir = (root or Path.cwd()) / ".gemini" / "commands"
-        if not commands_dir.is_dir():
-            return []
-
+    def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        seen: set[str] = set()
         commands: list[SlashCommand] = []
-        for path in sorted(commands_dir.rglob("*.toml")):
-            try:
-                data = tomllib.loads(path.read_text(encoding="utf-8"))
-            except (tomllib.TOMLDecodeError, OSError):
+        for root in roots or [Path.cwd()]:
+            commands_dir = root / ".gemini" / "commands"
+            if not commands_dir.is_dir():
                 continue
+            for path in sorted(commands_dir.rglob("*.toml")):
+                try:
+                    data = tomllib.loads(path.read_text(encoding="utf-8"))
+                except (tomllib.TOMLDecodeError, OSError):
+                    continue
 
-            rel = path.relative_to(commands_dir)
-            parts = list(rel.parts)
-            parts[-1] = parts[-1].removesuffix(".toml")
-            name = ":".join(parts)
+                rel = path.relative_to(commands_dir)
+                parts = list(rel.parts)
+                parts[-1] = parts[-1].removesuffix(".toml")
+                name = ":".join(parts)
 
-            commands.append(
-                PromptSlashCommand(
-                    name=f"/{name}",
-                    description=data.get("description", ""),
-                    prompt=data.get("prompt", ""),
+                if name in seen:
+                    continue
+                seen.add(name)
+                commands.append(
+                    PromptSlashCommand(
+                        name=f"/{name}",
+                        description=data.get("description", ""),
+                        prompt=data.get("prompt", ""),
+                    )
                 )
-            )
         return commands

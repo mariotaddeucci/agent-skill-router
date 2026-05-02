@@ -57,7 +57,7 @@ def _serialize_toml(data: dict[str, _TomlScalar | dict]) -> str:
                 lines.append(f"{k} = {_toml_scalar(v)}")
             lines.append("")
 
-    return "\n".join(lines)
+    return "\n".join(lines) + "\n"
 
 
 class CodexSetupProvider(AgentSetupProvider):
@@ -135,25 +135,24 @@ class CodexSetupProvider(AgentSetupProvider):
             )
         return commands
 
-    def list_prompts(self, root: Path | None = None) -> list[SlashCommand]:
-        """Read prompts from ``.codex/prompts/*.md`` under *root*.
-
-        Each ``.md`` file may contain YAML frontmatter with a ``description``
-        key.  The command name is derived from the file stem.
-        """
-        prompts_dir = (root or Path.cwd()) / ".codex" / "prompts"
-        if not prompts_dir.is_dir():
-            return []
-
+    def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        seen: set[str] = set()
         commands: list[SlashCommand] = []
-        for path in sorted(prompts_dir.glob("*.md")):
-            content = path.read_text(encoding="utf-8")
-            meta, body = _parse_frontmatter(content)
-            commands.append(
-                PromptSlashCommand(
-                    name=f"/{path.stem}",
-                    description=meta.get("description", ""),
-                    prompt=body,
+        for root in roots or [Path.cwd()]:
+            prompts_dir = root / ".codex" / "prompts"
+            if not prompts_dir.is_dir():
+                continue
+            for path in sorted(prompts_dir.glob("*.md")):
+                if path.stem in seen:
+                    continue
+                seen.add(path.stem)
+                content = path.read_text(encoding="utf-8")
+                meta, body = _parse_frontmatter(content)
+                commands.append(
+                    PromptSlashCommand(
+                        name=f"/{path.stem}",
+                        description=meta.get("description", ""),
+                        prompt=body,
+                    )
                 )
-            )
         return commands

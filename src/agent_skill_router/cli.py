@@ -7,7 +7,14 @@ import typer
 
 from agent_skill_router._skills import discover_skills, install_skill
 from agent_skill_router.agents import AGENT_PROVIDERS
-from agent_skill_router.server import _BUNDLED_SKILLS_PATH, _PROVIDER_ROOTS, _resolve_roots
+from agent_skill_router.agents._base import PromptSlashCommand
+from agent_skill_router.server import (
+    _BUNDLED_SKILLS_PATH,
+    _PROVIDER_ROOTS,
+    _expand_workspace,
+    _resolve_roots,
+    workspace_root,
+)
 from agent_skill_router.settings import Settings
 
 app = typer.Typer(
@@ -16,13 +23,29 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+WorkspaceDirArg = Annotated[
+    Path | None,
+    typer.Option(
+        "--workspace-dir",
+        help=(
+            "Explicit workspace root directory. "
+            "Overrides git-root auto-detection and the SKILL_ROUTER_WORKSPACE_DIR env var."
+        ),
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        resolve_path=True,
+    ),
+]
 
-def _all_roots(settings: Settings) -> list[Path]:
+
+def _all_roots(settings: Settings, ws: Path) -> list[Path]:
     """Return all skill roots that would be used by build_mcp, in discovery order."""
     roots: list[Path] = []
-    for attr, _cls, roots_by_level in _PROVIDER_ROOTS:
+    for attr, _cls, roots_by_level_template in _PROVIDER_ROOTS:
         if not getattr(settings, attr):
             continue
+        roots_by_level = _expand_workspace(roots_by_level_template, ws)
         roots.extend(
             _resolve_roots(
                 roots_by_level,
@@ -38,6 +61,28 @@ def _all_roots(settings: Settings) -> list[Path]:
     return roots
 
 
+def _all_prompts(settings: Settings, ws: Path) -> list[PromptSlashCommand]:
+    """Return all slash-command prompts discovered from agent native files."""
+    prompt_roots: list[Path] = []
+    if settings.enable_workspace_level:
+        prompt_roots.append(ws)
+    if settings.enable_user_level:
+        prompt_roots.append(Path.home())
+
+    seen: set[str] = {"create-skill"}
+    prompts: list[PromptSlashCommand] = []
+    for provider in AGENT_PROVIDERS.values():
+        for cmd in provider.list_prompts(roots=prompt_roots or None):
+            if not isinstance(cmd, PromptSlashCommand):
+                continue
+            name = cmd.name.lstrip("/")
+            if name in seen:
+                continue
+            seen.add(name)
+            prompts.append(cmd)
+    return prompts
+
+
 @app.command()
 def list(
     user: Annotated[
@@ -46,33 +91,55 @@ def list(
     workspace: Annotated[
         bool, typer.Option("--workspace", help="Show only workspace-level skills (.agents/skills/ and equivalents).")
     ] = False,
+    workspace_dir: WorkspaceDirArg = None,
 ) -> None:
-    """List all skills accessible to the MCP server.
+    """List all skills and prompts accessible to the MCP server.
 
     Discovers skills from every enabled provider root (workspace and/or user level)
     and prints a table with each skill's name, directory, and description.
+    Also lists slash-command prompts found in agent native prompt files.
     Use --user or --workspace to restrict the scope.
     """
     settings = Settings(
         enable_workspace_level=not user if (user or workspace) else True,
         enable_user_level=not workspace if (user or workspace) else True,
     )
+    ws = workspace_root(workspace_dir if workspace_dir is not None else settings.workspace_dir)
 
-    roots = _all_roots(settings)
+    roots = _all_roots(settings, ws)
     skills = discover_skills(roots)
+    prompts = _all_prompts(settings, ws)
 
-    if not skills:
-        typer.echo("No skills found.")
+    if not skills and not prompts:
+        typer.echo("No skills or prompts found.")
         raise typer.Exit()
 
-    name_w = max(len(s.name) for s in skills)
-    dir_w = max(len(str(s.directory)) for s in skills)
+    if skills:
+        name_w = max(len(s.name) for s in skills)
+        dir_w = max(len(str(s.directory)) for s in skills)
 
-    header = f"{'NAME':<{name_w}}  {'DIRECTORY':<{dir_w}}  DESCRIPTION"
-    typer.echo(header)
-    typer.echo("-" * len(header))
-    for skill in skills:
-        typer.echo(f"{skill.name:<{name_w}}  {skill.directory!s:<{dir_w}}  {skill.description}")
+        typer.echo("SKILLS")
+        header = f"  {'NAME':<{name_w}}  {'DIRECTORY':<{dir_w}}  DESCRIPTION"
+        typer.echo(header)
+        typer.echo("  " + "-" * (len(header) - 2))
+        for skill in skills:
+            typer.echo(f"  {skill.name:<{name_w}}  {skill.directory!s:<{dir_w}}  {skill.description}")
+    else:
+        typer.echo("No skills found.")
+
+    typer.echo("")
+
+    if prompts:
+        name_w = max(len(p.name.lstrip("/")) for p in prompts)
+
+        typer.echo("PROMPTS")
+        header = f"  {'NAME':<{name_w}}  DESCRIPTION"
+        typer.echo(header)
+        typer.echo("  " + "-" * (len(header) - 2))
+        for prompt in prompts:
+            typer.echo(f"  {prompt.name.lstrip('/'):<{name_w}}  {prompt.description}")
+    else:
+        typer.echo("No prompts found.")
 
 
 @app.command()
@@ -86,21 +153,24 @@ def install(
             "--user",
             help=(
                 "Install to ~/.agents/skills/ (available across all workspaces). "
-                "Default: .agents/skills/ in the current directory."
+                "Default: .agents/skills/ inside the workspace root."
             ),
         ),
     ] = False,
     force: Annotated[
         bool, typer.Option("--force", "-f", help="Overwrite the skill if it already exists at the destination.")
     ] = False,
+    workspace_dir: WorkspaceDirArg = None,
 ) -> None:
     """Install a skill into the local or user-level skills directory.
 
-    Copies the skill directory into .agents/skills/ (workspace) or
+    Copies the skill directory into .agents/skills/ (workspace root) or
     ~/.agents/skills/ (user, with --user). The destination is created
     automatically if it does not exist. Use --force to replace an existing skill.
     """
-    dest_root = Path.home() / ".agents" / "skills" if user else Path.cwd() / ".agents" / "skills"
+    settings = Settings()
+    ws = workspace_root(workspace_dir if workspace_dir is not None else settings.workspace_dir)
+    dest_root = Path.home() / ".agents" / "skills" if user else ws / ".agents" / "skills"
 
     source = source.resolve()
 
@@ -132,7 +202,9 @@ def install(
 
 
 @app.command()
-def run() -> None:
+def run(
+    workspace_dir: WorkspaceDirArg = None,
+) -> None:
     """Start the Agent Skill Router MCP server.
 
     Reads configuration from SKILL_ROUTER_* environment variables and starts
@@ -141,7 +213,7 @@ def run() -> None:
     from agent_skill_router.server import build_mcp
 
     settings = Settings()
-    mcp = build_mcp(settings)
+    mcp = build_mcp(settings, workspace_dir=workspace_dir)
     mcp.run()
 
 

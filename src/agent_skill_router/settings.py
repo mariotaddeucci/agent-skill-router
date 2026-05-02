@@ -16,6 +16,16 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",
     )
 
+    # Explicit workspace root — when set, skips git-root detection and uses
+    # this directory directly. Overridden by the --workspace-dir CLI flag.
+    workspace_dir: Path | None = Field(
+        default=None,
+        description=(
+            "Explicit workspace root directory. Overrides git-root auto-detection. "
+            "When unset, the git repository root (or cwd) is used."
+        ),
+    )
+
     # Global scope filters — applied to all providers before checking existence.
     # extra_dirs are always included regardless of these flags (they are explicit).
     enable_workspace_level: bool = Field(

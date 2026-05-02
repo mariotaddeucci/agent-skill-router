@@ -100,35 +100,24 @@ class CursorSetupProvider(AgentSetupProvider):
             )
         return commands
 
-    def list_prompts(self, root: Path | None = None) -> list[SlashCommand]:
-        """Read rules from ``.cursor/rules/`` under *root*.
-
-        Cursor stores custom rules/prompts as ``.mdc`` (or ``.md``) files under
-        ``.cursor/rules/``.  Each file may contain YAML frontmatter with a
-        ``description`` key; the body is the rule content.
-
-        Example file (``.cursor/rules/style.mdc``)::
-
-            ---
-            description: Enforce project code style conventions
-            globs: "src/**/*.ts"
-            alwaysApply: false
-            ---
-            Use functional components with hooks...
-        """
-        rules_dir = (root or Path.cwd()) / ".cursor" / "rules"
-        if not rules_dir.is_dir():
-            return []
-
+    def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        seen: set[str] = set()
         commands: list[SlashCommand] = []
-        for path in sorted(rules_dir.glob("*.mdc")) + sorted(rules_dir.glob("*.md")):
-            content = path.read_text(encoding="utf-8")
-            meta, body = _parse_frontmatter(content)
-            commands.append(
-                PromptSlashCommand(
-                    name=f"/{path.stem}",
-                    description=meta.get("description", ""),
-                    prompt=body,
+        for root in roots or [Path.cwd()]:
+            rules_dir = root / ".cursor" / "rules"
+            if not rules_dir.is_dir():
+                continue
+            for path in sorted(rules_dir.glob("*.mdc")) + sorted(rules_dir.glob("*.md")):
+                if path.stem in seen:
+                    continue
+                seen.add(path.stem)
+                content = path.read_text(encoding="utf-8")
+                meta, body = _parse_frontmatter(content)
+                commands.append(
+                    PromptSlashCommand(
+                        name=f"/{path.stem}",
+                        description=meta.get("description", ""),
+                        prompt=body,
+                    )
                 )
-            )
         return commands

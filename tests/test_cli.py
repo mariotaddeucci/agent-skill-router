@@ -107,7 +107,7 @@ def test_cli_list_shows_skill(tmp_path, monkeypatch):
 
     original = cli_mod._all_roots
 
-    def patched_roots(_settings):
+    def patched_roots(_settings, _ws):
         return [tmp_path]
 
     monkeypatch.setattr(cli_mod, "_all_roots", patched_roots)
@@ -121,10 +121,10 @@ def test_cli_list_shows_skill(tmp_path, monkeypatch):
 
 
 def test_cli_list_no_skills_message(tmp_path, monkeypatch):
-    monkeypatch.setattr(cli_mod, "_all_roots", lambda _s: [tmp_path])
+    monkeypatch.setattr(cli_mod, "_all_roots", lambda _s, _ws: [tmp_path])
     result = runner.invoke(app, ["list"])
     assert result.exit_code == 0
-    assert "No skills found" in result.output
+    assert "No skills" in result.output
 
 
 def test_cli_install_workspace(tmp_path, monkeypatch):

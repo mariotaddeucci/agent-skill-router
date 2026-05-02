@@ -103,37 +103,27 @@ class GitHubCopilotSetupProvider(AgentSetupProvider):
             )
         return commands
 
-    def list_prompts(self, root: Path | None = None) -> list[SlashCommand]:
-        """Read prompts from ``.github/prompts/*.prompt.md`` under *root*.
-
-        Each ``.prompt.md`` file may contain YAML frontmatter with a
-        ``description`` key.  The command name is derived from the file stem
-        with the trailing ``.prompt`` segment removed.
-
-        Example file (``.github/prompts/fix-bug.prompt.md``)::
-
-            ---
-            mode: 'chat'
-            description: 'Fix a bug in the selected code'
-            ---
-            You are an expert debugger...
-        """
-        prompts_dir = (root or Path.cwd()) / ".github" / "prompts"
-        if not prompts_dir.is_dir():
-            return []
-
+    def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        seen: set[str] = set()
         commands: list[SlashCommand] = []
-        for path in sorted(prompts_dir.glob("*.prompt.md")):
-            content = path.read_text(encoding="utf-8")
-            meta, body = _parse_frontmatter(content)
-            name = path.stem  # e.g. "fix-bug.prompt" → strip trailing ".prompt"
-            if name.endswith(".prompt"):
-                name = name[: -len(".prompt")]
-            commands.append(
-                PromptSlashCommand(
-                    name=f"/{name}",
-                    description=meta.get("description", ""),
-                    prompt=body,
+        for root in roots or [Path.cwd()]:
+            prompts_dir = root / ".github" / "prompts"
+            if not prompts_dir.is_dir():
+                continue
+            for path in sorted(prompts_dir.glob("*.prompt.md")):
+                name = path.stem
+                if name.endswith(".prompt"):
+                    name = name[: -len(".prompt")]
+                if name in seen:
+                    continue
+                seen.add(name)
+                content = path.read_text(encoding="utf-8")
+                meta, body = _parse_frontmatter(content)
+                commands.append(
+                    PromptSlashCommand(
+                        name=f"/{name}",
+                        description=meta.get("description", ""),
+                        prompt=body,
+                    )
                 )
-            )
         return commands

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest tests/setup/ -x -q)",
+      "Bash(uv run *)",
+      "WebFetch(domain:geminicli.com)",
+      "WebSearch",
+      "WebFetch(domain:cursor.com)",
+      "WebFetch(domain:opencode.ai)",
+      "WebFetch(domain:goose-docs.ai)",
+      "WebFetch(domain:developers.openai.com)",
+      "WebFetch(domain:block.github.io)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
+    ]
+  }
+}

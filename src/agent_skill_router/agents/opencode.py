@@ -100,34 +100,24 @@ class OpenCodeSetupProvider(AgentSetupProvider):
             )
         return commands
 
-    def list_prompts(self, root: Path | None = None) -> list[SlashCommand]:
-        """Read prompts from ``.opencode/commands/*.md`` under *root*.
-
-        OpenCode stores custom slash commands as Markdown files under
-        ``.opencode/commands/`` (global: ``~/.config/opencode/commands/``).
-        Each file may contain YAML frontmatter with a ``description`` key.
-        The filename stem becomes the command name.
-
-        Example file (``.opencode/commands/review.md``)::
-
-            ---
-            description: Review the current diff
-            ---
-            Review the following diff and suggest improvements...
-        """
-        commands_dir = (root or Path.cwd()) / ".opencode" / "commands"
-        if not commands_dir.is_dir():
-            return []
-
+    def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        seen: set[str] = set()
         commands: list[SlashCommand] = []
-        for path in sorted(commands_dir.glob("*.md")):
-            content = path.read_text(encoding="utf-8")
-            meta, body = _parse_frontmatter(content)
-            commands.append(
-                PromptSlashCommand(
-                    name=f"/{path.stem}",
-                    description=meta.get("description", ""),
-                    prompt=body,
+        for root in roots or [Path.cwd()]:
+            commands_dir = root / ".opencode" / "commands"
+            if not commands_dir.is_dir():
+                continue
+            for path in sorted(commands_dir.glob("*.md")):
+                if path.stem in seen:
+                    continue
+                seen.add(path.stem)
+                content = path.read_text(encoding="utf-8")
+                meta, body = _parse_frontmatter(content)
+                commands.append(
+                    PromptSlashCommand(
+                        name=f"/{path.stem}",
+                        description=meta.get("description", ""),
+                        prompt=body,
+                    )
                 )
-            )
         return commands

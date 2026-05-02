@@ -2,9 +2,10 @@
 
 import json
 import re
-import textwrap
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+import yaml
 
 from agent_skill_router.agents._base import (
     _DEFAULT_MCP_CONFIG,
@@ -17,24 +18,16 @@ from agent_skill_router.agents._base import (
 if TYPE_CHECKING:
     from agent_skill_router._skills import SkillEntry
 
-# Matches the agent-skill-router block inside the ``extensions:`` YAML section.
-_YAML_SCALAR_RE = re.compile(r'^(\w+):\s*["\']?(.+?)["\']?\s*$', re.MULTILINE)
-_YAML_BLOCK_RE = re.compile(r"^(\w+):\s*\|[-]?\n((?:[ \t]+[^\n]*\n?)*)", re.MULTILINE)
 
-
-def _parse_goose_recipe(content: str) -> dict[str, str]:
-    """Extract scalar and block-literal fields from a Goose recipe YAML file."""
-    fields: dict[str, str] = {}
-
-    for m in _YAML_BLOCK_RE.finditer(content):
-        fields[m.group(1)] = textwrap.dedent(m.group(2)).strip()
-
-    for m in _YAML_SCALAR_RE.finditer(content):
-        key = m.group(1)
-        if key not in fields:
-            fields[key] = m.group(2).strip()
-
-    return fields
+def _parse_goose_recipe(content: str) -> dict:
+    """Parse a Goose recipe YAML file and return its fields as a dict."""
+    try:
+        data = yaml.safe_load(content)
+        if isinstance(data, dict):
+            return data
+    except yaml.YAMLError:
+        pass
+    return {}
 
 
 _GOOSE_ENTRY_RE = re.compile(
@@ -172,39 +165,30 @@ class GooseSetupProvider(AgentSetupProvider):
             )
         return commands
 
-    def list_prompts(self, root: Path | None = None) -> list[SlashCommand]:
-        """Read recipes from ``.goose/recipes/*.yaml`` under *root*.
-
-        Goose stores reusable workflows as YAML recipe files.  The ``title``
-        field becomes the command name; ``description`` and ``instructions``
-        (or ``prompt``) are used for description and prompt body.
-
-        Example file (``.goose/recipes/standup.yaml``)::
-
-            version: "1.0.0"
-            title: daily-standup
-            description: Generate a daily standup summary
-            instructions: |
-              Analyze recent git commits and open PRs...
-        """
-        recipes_dir = (root or Path.cwd()) / ".goose" / "recipes"
-        if not recipes_dir.is_dir():
-            return []
-
+    def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        """Read recipes from ``.goose/recipes/*.yaml`` under each root."""
+        seen: set[str] = set()
         commands: list[SlashCommand] = []
-        for path in sorted(recipes_dir.glob("*.yaml")):
-            try:
-                data = _parse_goose_recipe(path.read_text(encoding="utf-8"))
-            except OSError:
+        for root in roots or [Path.cwd()]:
+            recipes_dir = root / ".goose" / "recipes"
+            if not recipes_dir.is_dir():
                 continue
+            for path in sorted(recipes_dir.glob("*.yaml")):
+                try:
+                    data = _parse_goose_recipe(path.read_text(encoding="utf-8"))
+                except OSError:
+                    continue
 
-            title = data.get("title", path.stem)
-            prompt_body = data.get("instructions") or data.get("prompt", "")
-            commands.append(
-                PromptSlashCommand(
-                    name=f"/{title}",
-                    description=data.get("description", ""),
-                    prompt=prompt_body,
+                title = str(data.get("title", path.stem))
+                if title in seen:
+                    continue
+                seen.add(title)
+                prompt_body = str(data.get("instructions") or data.get("prompt", ""))
+                commands.append(
+                    PromptSlashCommand(
+                        name=f"/{title}",
+                        description=str(data.get("description", "")),
+                        prompt=prompt_body,
+                    )
                 )
-            )
         return commands

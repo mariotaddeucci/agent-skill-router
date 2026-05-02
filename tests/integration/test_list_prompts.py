@@ -20,7 +20,7 @@ def test_list_prompts_returns_empty_in_clean_workspace(tmp_path: Path, monkeypat
     from agent_skill_router.agents import AGENT_PROVIDERS
 
     for name, provider in AGENT_PROVIDERS.items():
-        result = provider.list_prompts(root=tmp_path)
+        result = provider.list_prompts(roots=[tmp_path])
         assert result == [], f"{name}: expected [] in empty workspace, got {result}"
 
 
@@ -31,24 +31,24 @@ class TestGitHubCopilotListPrompts:
         self.provider = GitHubCopilotSetupProvider()
 
     def test_reads_prompt_md_file(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert len(result) == 1
 
     def test_command_name_strips_prompt_suffix(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert result[0].name == "/review-code"
 
     def test_description_from_frontmatter(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert result[0].description == "Review selected code for quality and bugs"
 
     def test_prompt_body_is_markdown_content(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert isinstance(result[0], PromptSlashCommand)
         assert "review" in result[0].prompt.lower()
 
     def test_returns_prompt_slash_command_type(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert isinstance(result[0], PromptSlashCommand)
         assert result[0].type == "prompt"
 
@@ -60,19 +60,19 @@ class TestOpenCodeListPrompts:
         self.provider = OpenCodeSetupProvider()
 
     def test_reads_command_md_file(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert len(result) == 1
 
     def test_command_name_from_stem(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert result[0].name == "/create-pr"
 
     def test_description_from_frontmatter(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert "pull request" in result[0].description.lower()
 
     def test_prompt_body_present(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert isinstance(result[0], PromptSlashCommand)
         assert len(result[0].prompt) > 0
 
@@ -84,24 +84,24 @@ class TestClaudeListPrompts:
         self.provider = ClaudeSetupProvider()
 
     def test_reads_command_md_file(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert len(result) == 1
 
     def test_command_name_from_stem(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert result[0].name == "/fix-bug"
 
     def test_description_from_frontmatter(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert "bug" in result[0].description.lower()
 
     def test_prompt_body_present(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert isinstance(result[0], PromptSlashCommand)
         assert len(result[0].prompt) > 0
 
     def test_frontmatter_not_in_prompt_body(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert isinstance(result[0], PromptSlashCommand)
         assert "allowed-tools" not in result[0].prompt
         assert "---" not in result[0].prompt
@@ -114,24 +114,24 @@ class TestCursorListPrompts:
         self.provider = CursorSetupProvider()
 
     def test_reads_mdc_file(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert len(result) == 1
 
     def test_command_name_from_stem(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert result[0].name == "/typescript"
 
     def test_description_from_frontmatter(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert "typescript" in result[0].description.lower()
 
     def test_prompt_body_is_rule_content(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert isinstance(result[0], PromptSlashCommand)
         assert "TypeScript" in result[0].prompt
 
     def test_frontmatter_fields_not_in_prompt(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert isinstance(result[0], PromptSlashCommand)
         assert "globs" not in result[0].prompt
         assert "alwaysApply" not in result[0].prompt
@@ -139,7 +139,7 @@ class TestCursorListPrompts:
     def test_also_reads_md_extension(self, workspace: Path) -> None:
         md_file = workspace / ".cursor" / "rules" / "extra.md"
         md_file.write_text("---\ndescription: Extra rule\n---\nExtra rule content.\n")
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         names = [r.name for r in result]
         assert "/extra" in names
         assert "/typescript" in names
@@ -152,26 +152,26 @@ class TestGeminiListPrompts:
         self.provider = GeminiSetupProvider()
 
     def test_reads_toml_file(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert len(result) == 2  # refactor.toml + git/commit.toml
 
     def test_root_command_name(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         names = [r.name for r in result]
         assert "/refactor" in names
 
     def test_namespaced_command_uses_colon(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         names = [r.name for r in result]
         assert "/git:commit" in names
 
     def test_description_from_toml_field(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         refactor = next(r for r in result if r.name == "/refactor")
         assert "pure function" in refactor.description.lower()
 
     def test_prompt_from_toml_field(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         refactor = next(r for r in result if r.name == "/refactor")
         assert isinstance(refactor, PromptSlashCommand)
         assert len(refactor.prompt) > 0
@@ -185,19 +185,19 @@ class TestCodexListPrompts:
         self.provider = CodexSetupProvider()
 
     def test_reads_md_file(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert len(result) == 1
 
     def test_command_name_from_stem(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert result[0].name == "/generate-tests"
 
     def test_description_from_frontmatter(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert "test" in result[0].description.lower()
 
     def test_prompt_body_present(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert isinstance(result[0], PromptSlashCommand)
         assert len(result[0].prompt) > 0
 
@@ -209,26 +209,26 @@ class TestGooseListPrompts:
         self.provider = GooseSetupProvider()
 
     def test_reads_yaml_recipe(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert len(result) == 1
 
     def test_command_name_from_title_field(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert result[0].name == "/daily-standup"
 
     def test_description_from_yaml_field(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert "standup" in result[0].description.lower()
 
     def test_prompt_from_instructions_block(self, workspace: Path) -> None:
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         assert isinstance(result[0], PromptSlashCommand)
         assert "git commits" in result[0].prompt.lower()
 
     def test_fallback_to_filename_when_no_title(self, workspace: Path) -> None:
         recipe = workspace / ".goose" / "recipes" / "no-title.yaml"
         recipe.write_text("version: '1.0.0'\ndescription: No title recipe\ninstructions: Do something.\n")
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         names = [r.name for r in result]
         assert "/no-title" in names
 
@@ -237,7 +237,7 @@ class TestGooseListPrompts:
         recipe.write_text(
             "version: '1.0.0'\ntitle: prompt-field\ndescription: Uses prompt field\nprompt: Prompt body here.\n"
         )
-        result = self.provider.list_prompts(root=workspace)
+        result = self.provider.list_prompts(roots=[workspace])
         pf = next(r for r in result if r.name == "/prompt-field")
         assert isinstance(pf, PromptSlashCommand)
         assert pf.prompt == "Prompt body here."

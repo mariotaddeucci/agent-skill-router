@@ -139,9 +139,11 @@ class AgentSetupProvider(ABC):
         """Convert a list of skills into agent-specific slash commands."""
 
     @abstractmethod
-    def list_prompts(self, root: Path | None = None) -> list[SlashCommand]:
+    def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
         """Read existing slash commands from the agent's native prompt files.
 
-        Scans agent-specific prompt directories under *root* (defaults to
-        ``Path.cwd()``) and returns parsed :class:`SlashCommand` objects.
+        Scans agent-specific prompt directories under each path in *roots*
+        (defaults to ``[Path.cwd()]``) and returns parsed :class:`SlashCommand`
+        objects. First-wins deduplication applies when the same command name
+        appears in multiple roots.
         """

@@ -23,22 +23,21 @@ from agent_skill_router.settings import Settings
 # both in development (src layout) and after pip install.
 _BUNDLED_SKILLS_PATH = Path(__file__).parent / "skills"
 
-# Each entry: (settings_attr, provider_cls, roots_by_level)
-# roots_by_level maps "workspace" | "user" -> list of paths for that level.
-# Vendor classes are used for their own roots; SkillsDirectoryProvider is used
-# when we need to pass a filtered subset of roots explicitly.
+# Template for provider roots — workspace paths use a "{workspace}" placeholder
+# replaced at runtime by the resolved workspace root (git root or cwd).
+# Each entry: (settings_attr, provider_cls, roots_by_level_template)
 _PROVIDER_ROOTS: list[
     tuple[
         str,  # settings attribute name
         type,  # provider class
-        dict[Literal["workspace", "user"], list[Path]],
+        dict[Literal["workspace", "user"], list[str | Path]],
     ]
 ] = [
     (
         "enable_claude",
         ClaudeSkillsProvider,
         {
-            "workspace": [Path.cwd() / ".claude" / "skills"],
+            "workspace": ["{workspace}/.claude/skills"],
             "user": [Path.home() / ".claude" / "skills"],
         },
     ),
@@ -46,7 +45,7 @@ _PROVIDER_ROOTS: list[
         "enable_cursor",
         CursorSkillsProvider,
         {
-            "workspace": [Path.cwd() / ".cursor" / "skills"],
+            "workspace": ["{workspace}/.cursor/skills"],
             "user": [Path.home() / ".cursor" / "skills"],
         },
     ),
@@ -54,7 +53,7 @@ _PROVIDER_ROOTS: list[
         "enable_vscode",
         VSCodeSkillsProvider,
         {
-            "workspace": [Path.cwd() / ".copilot" / "skills"],
+            "workspace": ["{workspace}/.copilot/skills"],
             "user": [Path.home() / ".copilot" / "skills"],
         },
     ),
@@ -62,7 +61,7 @@ _PROVIDER_ROOTS: list[
         "enable_codex",
         CodexSkillsProvider,
         {
-            "workspace": [Path.cwd() / ".codex" / "skills"],
+            "workspace": ["{workspace}/.codex/skills"],
             # /etc/codex/skills is system-managed, grouped under "user" scope
             "user": [Path("/etc/codex/skills"), Path.home() / ".codex" / "skills"],
         },
@@ -71,7 +70,7 @@ _PROVIDER_ROOTS: list[
         "enable_gemini",
         GeminiSkillsProvider,
         {
-            "workspace": [Path.cwd() / ".gemini" / "skills"],
+            "workspace": ["{workspace}/.gemini/skills"],
             "user": [Path.home() / ".gemini" / "skills"],
         },
     ),
@@ -79,7 +78,7 @@ _PROVIDER_ROOTS: list[
         "enable_goose",
         GooseSkillsProvider,
         {
-            "workspace": [Path.cwd() / ".goose" / "skills"],
+            "workspace": ["{workspace}/.goose/skills"],
             "user": [Path.home() / ".config" / "agents" / "skills"],
         },
     ),
@@ -87,7 +86,7 @@ _PROVIDER_ROOTS: list[
         "enable_copilot",
         CopilotSkillsProvider,
         {
-            "workspace": [Path.cwd() / ".copilot" / "skills"],
+            "workspace": ["{workspace}/.copilot/skills"],
             "user": [Path.home() / ".copilot" / "skills"],
         },
     ),
@@ -95,7 +94,7 @@ _PROVIDER_ROOTS: list[
         "enable_opencode",
         OpenCodeSkillsProvider,
         {
-            "workspace": [Path.cwd() / ".opencode" / "skills"],
+            "workspace": ["{workspace}/.opencode/skills"],
             "user": [Path.home() / ".config" / "opencode" / "skills"],
         },
     ),
@@ -103,7 +102,7 @@ _PROVIDER_ROOTS: list[
         "enable_agents",
         SkillsDirectoryProvider,
         {
-            "workspace": [Path.cwd() / ".agents" / "skills"],
+            "workspace": ["{workspace}/.agents/skills"],
             "user": [Path.home() / ".agents" / "skills"],
         },
     ),
@@ -111,11 +110,55 @@ _PROVIDER_ROOTS: list[
         "enable_openclaw",
         SkillsDirectoryProvider,
         {
-            "workspace": [Path.cwd() / ".openclaw" / "skills"],
+            "workspace": ["{workspace}/.openclaw/skills"],
             "user": [Path.home() / ".openclaw" / "skills"],
         },
     ),
 ]
+
+
+def _git_root(start: Path) -> Path:
+    """Walk up from *start* looking for a ``.git`` directory or file.
+
+    Returns the directory that contains ``.git`` when found, otherwise
+    returns *start* unchanged.
+    """
+    current = start.resolve()
+    while True:
+        if (current / ".git").exists():
+            return current
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+    return start.resolve()
+
+
+def workspace_root(directory: Path | None = None) -> Path:
+    """Return the effective workspace root.
+
+    Resolution order:
+    1. *directory* — if explicitly provided, use it as-is (no git detection).
+    2. Git root — if ``Path.cwd()`` (or *directory*) is inside a git repo,
+       walk up to find the repository root.
+    3. ``Path.cwd()`` — fallback when no git repo is found.
+    """
+    if directory is not None:
+        return directory.resolve()
+    return _git_root(Path.cwd())
+
+
+def _expand_workspace(
+    roots_by_level_template: dict[Literal["workspace", "user"], list[str | Path]],
+    workspace: Path,
+) -> dict[Literal["workspace", "user"], list[Path]]:
+    """Resolve ``{workspace}`` placeholders in workspace path templates."""
+    result: dict[Literal["workspace", "user"], list[Path]] = {}
+    for level, paths in roots_by_level_template.items():
+        result[level] = [
+            Path(str(p).replace("{workspace}", str(workspace))) if isinstance(p, str) else p for p in paths
+        ]
+    return result
 
 
 def _static_prompt(body: str) -> Callable[[], str]:
@@ -141,9 +184,13 @@ def _resolve_roots(
     return [r for r in allowed if r.exists()]
 
 
-def build_mcp(settings: Settings | None = None) -> FastMCP:
+def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = None) -> FastMCP:
     if settings is None:
         settings = Settings()
+
+    # Explicit workspace_dir argument takes priority over settings.workspace_dir,
+    # which in turn takes priority over git-root / cwd auto-detection.
+    ws = workspace_root(workspace_dir if workspace_dir is not None else settings.workspace_dir)
 
     mcp = FastMCP("Agent Skill Router")
 
@@ -167,7 +214,7 @@ def build_mcp(settings: Settings | None = None) -> FastMCP:
         Args:
             goal: Describe the skill you want to create or improve.
             save_to_user_level: Save to ~/.agents/skills/ (all workspaces) instead of
-                <cwd>/.agents/skills/ (this workspace only). Default: False.
+                <workspace>/.agents/skills/ (this workspace only). Default: False.
         """
         if save_to_user_level:
             output_dir = Path.home() / ".agents" / "skills"
@@ -175,7 +222,7 @@ def build_mcp(settings: Settings | None = None) -> FastMCP:
                 f"Save the finished skill to `{output_dir}/<skill-name>/` so it is available across **all workspaces**."
             )
         else:
-            output_dir = Path.cwd() / ".agents" / "skills"
+            output_dir = ws / ".agents" / "skills"
             scope_note = (
                 f"Save the finished skill to `{output_dir}/<skill-name>/` "
                 f"so it is available to agents in **this workspace only**."
@@ -197,10 +244,11 @@ def build_mcp(settings: Settings | None = None) -> FastMCP:
     # supporting_files="resources" ensures every file in every skill is
     # individually listed, not hidden behind the manifest template.
 
-    for attr, provider_cls, roots_by_level in _PROVIDER_ROOTS:
+    for attr, provider_cls, roots_by_level_template in _PROVIDER_ROOTS:
         if not getattr(settings, attr):
             continue
 
+        roots_by_level = _expand_workspace(roots_by_level_template, ws)
         roots = _resolve_roots(
             roots_by_level,
             enable_workspace=settings.enable_workspace_level,
@@ -230,10 +278,17 @@ def build_mcp(settings: Settings | None = None) -> FastMCP:
 
     # --- Slash commands from agent native prompt files (cross-agent sharing) ---
     # Reads each agent's native command format and registers them as MCP prompts.
+    # Workspace root and user home are passed according to scope flags.
     # First provider to define a name wins; "create-skill" is reserved.
+    prompt_roots: list[Path] = []
+    if settings.enable_workspace_level:
+        prompt_roots.append(ws)
+    if settings.enable_user_level:
+        prompt_roots.append(Path.home())
+
     seen_prompt_names: set[str] = {"create-skill"}
     for provider in AGENT_PROVIDERS.values():
-        for cmd in provider.list_prompts():
+        for cmd in provider.list_prompts(roots=prompt_roots or None):
             if not isinstance(cmd, PromptSlashCommand):
                 continue
             cmd_name = cmd.name.lstrip("/")
