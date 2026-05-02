@@ -41,9 +41,19 @@ class CursorSetupProvider(AgentSetupProvider):
     name = "cursor"
 
     def config_path_workspace(self) -> Path:
+        """Return the path to the Cursor MCP config file for workspace-level installation.
+
+        Returns:
+            Path — ``<cwd>/.cursor/mcp.json``
+        """
         return Path.cwd() / ".cursor" / "mcp.json"
 
     def config_path_user(self) -> Path:
+        """Return the path to the Cursor MCP config file for user-level installation.
+
+        Returns:
+            Path — ``~/.cursor/mcp.json``
+        """
         return Path.home() / ".cursor" / "mcp.json"
 
     def discover(self) -> list[Path]:

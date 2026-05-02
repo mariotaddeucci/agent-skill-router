@@ -98,7 +98,8 @@
 ---
 
 ### DOC-005: `CursorProvider.config_path_workspace`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/cursor.py`
 - **Gap ID:** GAP-005
 - **Type:** Method
@@ -108,17 +109,18 @@
   ```
   def config_path_workspace(self) -> Path
   ```
-- **Documentation Plan:**
-  - [ ] Description: Return the path to the Cursor MCP config file for workspace-level installation
-  - [ ] Parameters: None
-  - [ ] Returns: `Path` — workspace-scoped config path
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Return the path to the Cursor MCP config file for workspace-level installation
+  - [x] Parameters: None
+  - [x] Returns: `Path` — ``<cwd>/.cursor/mcp.json``
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 
 ### DOC-006: `CursorProvider.config_path_user`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/cursor.py`
 - **Gap ID:** GAP-006
 - **Type:** Method
@@ -128,17 +130,18 @@
   ```
   def config_path_user(self) -> Path
   ```
-- **Documentation Plan:**
-  - [ ] Description: Return the path to the Cursor MCP config file for user-level installation
-  - [ ] Parameters: None
-  - [ ] Returns: `Path` — user-scoped config path
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Return the path to the Cursor MCP config file for user-level installation
+  - [x] Parameters: None
+  - [x] Returns: `Path` — ``~/.cursor/mcp.json``
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 
 ### DOC-007: `GeminiProvider.config_path_workspace`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/gemini.py`
 - **Gap ID:** GAP-007
 - **Type:** Method
@@ -148,17 +151,18 @@
   ```
   def config_path_workspace(self) -> Path
   ```
-- **Documentation Plan:**
-  - [ ] Description: Return the path to the Gemini MCP config file for workspace-level installation
-  - [ ] Parameters: None
-  - [ ] Returns: `Path` — workspace-scoped config path
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Return the path to the Gemini CLI MCP config file for workspace-level installation
+  - [x] Parameters: None
+  - [x] Returns: `Path` — ``<cwd>/.gemini/settings.json``
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 
 ### DOC-008: `GeminiProvider.config_path_user`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/gemini.py`
 - **Gap ID:** GAP-008
 - **Type:** Method
@@ -168,17 +172,18 @@
   ```
   def config_path_user(self) -> Path
   ```
-- **Documentation Plan:**
-  - [ ] Description: Return the path to the Gemini MCP config file for user-level installation
-  - [ ] Parameters: None
-  - [ ] Returns: `Path` — user-scoped config path
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Return the path to the Gemini CLI MCP config file for user-level installation
+  - [x] Parameters: None
+  - [x] Returns: `Path` — ``~/.gemini/settings.json``
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 
 ### DOC-009: `GithubCopilotProvider.config_path_workspace`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/github_copilot.py`
 - **Gap ID:** GAP-009
 - **Type:** Method
@@ -188,17 +193,18 @@
   ```
   def config_path_workspace(self) -> Path
   ```
-- **Documentation Plan:**
-  - [ ] Description: Return the path to the GitHub Copilot MCP config file for workspace-level installation
-  - [ ] Parameters: None
-  - [ ] Returns: `Path` — workspace-scoped config path
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Return the path to the GitHub Copilot MCP config file for workspace-level installation
+  - [x] Parameters: None
+  - [x] Returns: `Path` — ``<cwd>/.vscode/mcp.json``
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 
 ### DOC-010: `GithubCopilotProvider.config_path_user`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/github_copilot.py`
 - **Gap ID:** GAP-010
 - **Type:** Method
@@ -208,17 +214,18 @@
   ```
   def config_path_user(self) -> Path
   ```
-- **Documentation Plan:**
-  - [ ] Description: Return the path to the GitHub Copilot MCP config file for user-level installation
-  - [ ] Parameters: None
-  - [ ] Returns: `Path` — user-scoped config path
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Return the path to the GitHub Copilot MCP config file for user-level installation
+  - [x] Parameters: None
+  - [x] Returns: `Path` — ``~/.vscode/mcp.json``
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 
 ### DOC-011: `OpenCodeProvider.config_path_workspace`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/opencode.py`
 - **Gap ID:** GAP-011
 - **Type:** Method
@@ -228,17 +235,18 @@
   ```
   def config_path_workspace(self) -> Path
   ```
-- **Documentation Plan:**
-  - [ ] Description: Return the path to the OpenCode MCP config file for workspace-level installation
-  - [ ] Parameters: None
-  - [ ] Returns: `Path` — workspace-scoped config path
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Return the path to the OpenCode MCP config file for workspace-level installation
+  - [x] Parameters: None
+  - [x] Returns: `Path` — ``<cwd>/.opencode/mcp.json``
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 
 ### DOC-012: `OpenCodeProvider.config_path_user`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/opencode.py`
 - **Gap ID:** GAP-012
 - **Type:** Method
@@ -248,12 +256,12 @@
   ```
   def config_path_user(self) -> Path
   ```
-- **Documentation Plan:**
-  - [ ] Description: Return the path to the OpenCode MCP config file for user-level installation
-  - [ ] Parameters: None
-  - [ ] Returns: `Path` — user-scoped config path
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Return the path to the OpenCode MCP config file for user-level installation
+  - [x] Parameters: None
+  - [x] Returns: `Path` — ``~/.config/opencode/opencode.json``
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 

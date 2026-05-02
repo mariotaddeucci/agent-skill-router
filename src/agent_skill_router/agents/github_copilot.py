@@ -40,9 +40,19 @@ class GitHubCopilotSetupProvider(AgentSetupProvider):
     name = "github-copilot"
 
     def config_path_workspace(self) -> Path:
+        """Return the path to the GitHub Copilot MCP config file for workspace-level installation.
+
+        Returns:
+            Path — ``<cwd>/.vscode/mcp.json``
+        """
         return Path.cwd() / ".vscode" / "mcp.json"
 
     def config_path_user(self) -> Path:
+        """Return the path to the GitHub Copilot MCP config file for user-level installation.
+
+        Returns:
+            Path — ``~/.vscode/mcp.json``
+        """
         return Path.home() / ".vscode" / "mcp.json"
 
     def discover(self) -> list[Path]:
