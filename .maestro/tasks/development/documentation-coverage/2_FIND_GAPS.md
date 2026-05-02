@@ -2,10 +2,10 @@
 
 ## Context
 - **Playbook:** Documentation
-- **Agent:** {{AGENT_NAME}}
-- **Project:** {{AGENT_PATH}}
-- **Auto Run Folder:** {{AUTORUN_FOLDER}}
-- **Loop:** {{LOOP_NUMBER}}
+- **Agent:** Bob
+- **Project:** /Users/mariotaddeucci/Documents/GitHub/agent-skill-router
+- **Auto Run Folder:** /Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks
+- **Loop:** 00001
 
 ## Objective
 
@@ -13,14 +13,14 @@ Using the documentation report, identify specific undocumented exports that need
 
 ## Instructions
 
-1. **Read the doc report** from `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_DOC_REPORT.md`
+1. **Read the doc report** from `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_DOC_REPORT.md`
 2. **Examine low-coverage modules** to find specific undocumented exports
 3. **Document each gap** with location, type, and visibility
-4. **Output findings** to `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_GAPS.md`
+4. **Output findings** to `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_GAPS.md`
 
 ## Discovery Checklist
 
-- [ ] **Find documentation gaps (or skip if not needed)**: Read `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_DOC_REPORT.md`. If the report shows overall coverage of 90% or higher, OR there are no modules with coverage below 90%, mark this task complete without creating a gaps file—the coverage target has been met. Otherwise, examine low-coverage modules, identify specific undocumented functions, classes, and types. List each gap with file path, export name, type, and why documentation is needed. Output to `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_GAPS.md`.
+- [x] **Find documentation gaps (or skip if not needed)**: Read `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_DOC_REPORT.md`. If the report shows overall coverage of 90% or higher, OR there are no modules with coverage below 90%, mark this task complete without creating a gaps file—the coverage target has been met. Otherwise, examine low-coverage modules, identify specific undocumented functions, classes, and types. List each gap with file path, export name, type, and why documentation is needed. Output to `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_GAPS.md`.
 
 ## What to Look For
 
@@ -67,10 +67,10 @@ Using the documentation report, identify specific undocumented exports that need
 
 ## Output Format
 
-Create/update `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_GAPS.md` with:
+Create/update `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_GAPS.md` with:
 
 ```markdown
-# Documentation Gaps - Loop {{LOOP_NUMBER}}
+# Documentation Gaps - Loop 00001
 
 ## Summary
 - **Total Gaps Found:** [count]
@@ -160,4 +160,4 @@ This task is complete when ONE of the following is true:
 **Option B - Gaps identified:**
 1. The doc report shows coverage below 90%
 2. You've examined low-coverage modules and found undocumented exports
-3. You've created `{{AUTORUN_FOLDER}}/LOOP_{{LOOP_NUMBER}}_GAPS.md` with all findings
+3. You've created `/Users/mariotaddeucci/Documents/GitHub/agent-skill-router/.maestro/tasks/LOOP_00001_GAPS.md` with all findings
