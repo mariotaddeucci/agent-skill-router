@@ -35,7 +35,8 @@
 ---
 
 ### DOC-002: `SlashCommand` type alias
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/_base.py`
 - **Gap ID:** GAP-002
 - **Type:** Type alias
@@ -45,12 +46,12 @@
   ```
   SlashCommand = Annotated[PromptSlashCommand | ToolSlashCommand | ResourceSlashCommand, Field(discriminator="type")]
   ```
-- **Documentation Plan:**
-  - [ ] Description: Discriminated union of the three slash-command variants; the `type` field determines which variant is in use
-  - [ ] Parameters: N/A
-  - [ ] Returns: N/A
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Discriminated union of the three slash-command variants; the `type` field determines which variant is in use
+  - [x] Parameters: N/A
+  - [x] Returns: N/A
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 

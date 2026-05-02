@@ -62,6 +62,18 @@ SlashCommand = Annotated[
     PromptSlashCommand | ToolSlashCommand | ResourceSlashCommand,
     Field(discriminator="type"),
 ]
+"""Discriminated union of the three slash-command variants.
+
+The ``type`` field determines which concrete variant is in use:
+
+- ``"prompt"`` → :class:`PromptSlashCommand` — expands into a static prompt string
+- ``"tool"`` → :class:`ToolSlashCommand` — triggers a named MCP tool
+- ``"resource"`` → :class:`ResourceSlashCommand` — opens a named MCP resource URI
+
+Use this type for parameters and return values that accept any slash-command variant.
+Pydantic will deserialize and validate the correct subclass automatically based on
+the ``type`` discriminator field.
+"""
 
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 _FRONTMATTER_KV_RE = re.compile(r"^(\w[\w-]*)\s*:\s*(.*)$")
