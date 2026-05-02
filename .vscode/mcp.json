@@ -1,0 +1,18 @@
+{
+  "servers": {
+    "agent-skill-router": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "agent-skill-router",
+        "run"
+      ],
+      "env": {
+        "SKILL_ROUTER_PROVIDERS_DEFAULT": "false",
+        "SKILL_ROUTER_ENABLE_OPENCODE": "true",
+        "SKILL_ROUTER_ENABLE_CLAUDE": "true"
+      }
+    }
+  }
+}

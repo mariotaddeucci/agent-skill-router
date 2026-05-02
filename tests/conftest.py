@@ -18,7 +18,7 @@ def all_disabled_settings(tmp_path):
         enable_codex=False,
         enable_gemini=False,
         enable_goose=False,
-        enable_copilot=False,
+        enable_github_copilot=False,
         enable_opencode=False,
         enable_agents=False,
         enable_openclaw=False,

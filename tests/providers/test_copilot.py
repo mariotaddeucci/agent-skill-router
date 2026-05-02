@@ -1,4 +1,4 @@
-"""Tests for the Copilot provider scope flags."""
+"""Tests for the GitHub Copilot provider scope flags."""
 
 from fastmcp import Client
 from fastmcp.server.providers.skills import CopilotSkillsProvider, SkillsDirectoryProvider
@@ -8,14 +8,14 @@ from agent_skill_router.server import build_mcp
 
 
 async def test_copilot_provider_workspace_root_used(all_disabled_settings, tmp_path):
-    ws = tmp_path / ".copilot" / "skills"
+    ws = tmp_path / ".github" / "skills"
     skill = ws / "ws-skill"
     skill.mkdir(parents=True)
     (skill / "SKILL.md").write_text("---\ndescription: ws\n---\n# WS\n")
 
     settings = all_disabled_settings.model_copy(
         update={
-            "enable_copilot": True,
+            "enable_github_copilot": True,
             "enable_workspace_level": True,
             "enable_user_level": False,
         }
@@ -24,9 +24,9 @@ async def test_copilot_provider_workspace_root_used(all_disabled_settings, tmp_p
     original = srv._PROVIDER_ROOTS
     patched = [
         (attr, cls, roots)
-        if attr != "enable_copilot"
+        if attr != "enable_github_copilot"
         else (
-            "enable_copilot",
+            "enable_github_copilot",
             SkillsDirectoryProvider,
             {
                 "workspace": [ws],
@@ -54,7 +54,7 @@ async def test_copilot_provider_user_root_used(all_disabled_settings, tmp_path):
 
     settings = all_disabled_settings.model_copy(
         update={
-            "enable_copilot": True,
+            "enable_github_copilot": True,
             "enable_workspace_level": False,
             "enable_user_level": True,
         }
@@ -63,12 +63,12 @@ async def test_copilot_provider_user_root_used(all_disabled_settings, tmp_path):
     original = srv._PROVIDER_ROOTS
     patched = [
         (attr, cls, roots)
-        if attr != "enable_copilot"
+        if attr != "enable_github_copilot"
         else (
-            "enable_copilot",
+            "enable_github_copilot",
             SkillsDirectoryProvider,
             {
-                "workspace": [tmp_path / ".copilot" / "ws-skills"],
+                "workspace": [tmp_path / ".github" / "skills"],
                 "user": [user],
             },
         )
@@ -93,6 +93,6 @@ async def test_copilot_provider_disabled_exposes_nothing(all_disabled_settings):
 
 
 def test_copilot_provider_class_registered():
-    """Ensure the Copilot entry in _PROVIDER_ROOTS uses CopilotSkillsProvider."""
-    entry = next(e for e in srv._PROVIDER_ROOTS if e[0] == "enable_copilot")
+    """Ensure the GitHub Copilot entry in _PROVIDER_ROOTS uses CopilotSkillsProvider."""
+    entry = next(e for e in srv._PROVIDER_ROOTS if e[0] == "enable_github_copilot")
     assert entry[1] is CopilotSkillsProvider

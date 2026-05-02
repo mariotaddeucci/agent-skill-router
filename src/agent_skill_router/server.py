@@ -53,7 +53,7 @@ _PROVIDER_ROOTS: list[
         "enable_vscode",
         VSCodeSkillsProvider,
         {
-            "workspace": ["{workspace}/.copilot/skills"],
+            "workspace": ["{workspace}/.github/skills"],
             "user": [Path.home() / ".copilot" / "skills"],
         },
     ),
@@ -83,10 +83,10 @@ _PROVIDER_ROOTS: list[
         },
     ),
     (
-        "enable_copilot",
+        "enable_github_copilot",
         CopilotSkillsProvider,
         {
-            "workspace": ["{workspace}/.copilot/skills"],
+            "workspace": ["{workspace}/.github/skills"],
             "user": [Path.home() / ".copilot" / "skills"],
         },
     ),

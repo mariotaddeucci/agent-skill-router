@@ -66,7 +66,10 @@ class Settings(BaseSettings):
     )
     enable_gemini: bool | None = Field(default=None, description="Enable GeminiSkillsProvider (~/.gemini/skills/)")
     enable_goose: bool | None = Field(default=None, description="Enable GooseSkillsProvider (~/.config/agents/skills/)")
-    enable_copilot: bool | None = Field(default=None, description="Enable CopilotSkillsProvider (~/.copilot/skills/)")
+    enable_github_copilot: bool | None = Field(
+        default=None,
+        description="Enable CopilotSkillsProvider (.github/skills/ and ~/.copilot/skills/)",
+    )
     enable_opencode: bool | None = Field(
         default=None,
         description="Enable OpenCodeSkillsProvider (~/.config/opencode/skills/)",

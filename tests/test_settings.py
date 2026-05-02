@@ -19,7 +19,7 @@ def test_defaults_all_enabled():
     assert s.is_provider_enabled("enable_codex") is True
     assert s.is_provider_enabled("enable_gemini") is True
     assert s.is_provider_enabled("enable_goose") is True
-    assert s.is_provider_enabled("enable_copilot") is True
+    assert s.is_provider_enabled("enable_github_copilot") is True
     assert s.is_provider_enabled("enable_opencode") is True
     assert s.is_provider_enabled("enable_agents") is True
     assert s.is_provider_enabled("enable_openclaw") is True

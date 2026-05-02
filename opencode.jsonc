@@ -1,0 +1,16 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "agent-skill-router": {
+      "type": "local",
+      "command": ["uv", "run", "agent-skill-router", "run"],
+      "enabled": true,
+      "environment": {
+        "SKILL_ROUTER_PROVIDERS_DEFAULT": "false",
+        "SKILL_ROUTER_ENABLE_OPENCODE": "true",
+        "SKILL_ROUTER_ENABLE_GITHUB_COPILOT": "true",
+        "SKILL_ROUTER_ENABLE_CLAUDE": "true",
+      },
+    },
+  },
+}
