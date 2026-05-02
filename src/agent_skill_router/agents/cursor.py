@@ -104,6 +104,24 @@ class CursorSetupProvider(AgentSetupProvider):
         return commands
 
     def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        """Return slash commands discovered from ``.cursor/rules/`` under each root.
+
+        Scans ``<root>/.cursor/rules/`` for ``*.mdc`` and ``*.md`` files and
+        converts each file into a :class:`PromptSlashCommand`.  Files are
+        de-duplicated by stem across all roots — the first occurrence wins.
+        Front-matter (YAML) is parsed to extract the optional ``description``
+        field; the remainder of the file becomes the prompt body.
+
+        Parameters:
+            roots: Directories to search.  Each entry is expected to be a
+                project or home root that may contain a ``.cursor/rules/``
+                sub-directory.  Defaults to ``[Path.cwd()]`` when *None*.
+
+        Returns:
+            list[SlashCommand] — one :class:`PromptSlashCommand` per unique
+            rule file found, ordered by root then by filename within each
+            rules directory.
+        """
         seen: set[str] = set()
         commands: list[SlashCommand] = []
         for root in roots or [Path.cwd()]:

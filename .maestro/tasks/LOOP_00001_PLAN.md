@@ -66,7 +66,8 @@ related:
   - [x] Errors: No
 
 ### DOC-003: `CursorAgentSetupProvider.list_prompts`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/cursor.py`
 - **Gap ID:** GAP-003
 - **Type:** Function
@@ -76,12 +77,12 @@ related:
   ```
   def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
   ```
-- **Documentation Plan:**
-  - [ ] Description: Scans `.cursor/prompts/*.md` under each root for slash command definitions
-  - [ ] Parameters: `roots` (list of base directories to scan; defaults to configured roots if None)
-  - [ ] Returns: List of `SlashCommand` objects discovered
-  - [ ] Examples: No
-  - [ ] Errors: No
+- **Documentation Added:**
+  - [x] Description: Scans `.cursor/rules/*.mdc` and `*.md` under each root for rule/prompt definitions
+  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
+  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by stem
+  - [x] Examples: No
+  - [x] Errors: No
 
 ### DOC-004: `GithubCopilotAgentSetupProvider.list_prompts`
 - **Status:** `PENDING`
