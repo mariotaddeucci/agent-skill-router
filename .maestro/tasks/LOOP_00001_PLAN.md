@@ -104,7 +104,8 @@ related:
   - [x] Errors: No
 
 ### DOC-005: `OpencodeAgentSetupProvider.list_prompts`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001 (iteration 2)
 - **File:** `src/agent_skill_router/agents/opencode.py`
 - **Gap ID:** GAP-005
 - **Type:** Function
@@ -114,15 +115,16 @@ related:
   ```
   def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
   ```
-- **Documentation Plan:**
-  - [ ] Description: Scans `.opencode/prompts/*.md` under each root for slash command definitions
-  - [ ] Parameters: `roots` (list of base directories to scan; defaults to configured roots if None)
-  - [ ] Returns: List of `SlashCommand` objects discovered
-  - [ ] Examples: No
-  - [ ] Errors: No
+- **Documentation Added:**
+  - [x] Description: Scans `.opencode/commands/*.md` under each root for slash command definitions
+  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
+  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by stem
+  - [x] Examples: No
+  - [x] Errors: No
 
 ### DOC-006: `GooseAgentSetupProvider.list_prompts`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001 (iteration 1 — already had docstring)
 - **File:** `src/agent_skill_router/agents/goose.py`
 - **Gap ID:** GAP-006
 - **Type:** Function
@@ -132,15 +134,16 @@ related:
   ```
   def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
   ```
-- **Documentation Plan:**
-  - [ ] Description: Scans Goose-specific prompt directories under each root for slash command definitions
-  - [ ] Parameters: `roots` (list of base directories to scan; defaults to configured roots if None)
-  - [ ] Returns: List of `SlashCommand` objects discovered
-  - [ ] Examples: No
-  - [ ] Errors: No
+- **Documentation Added:**
+  - [x] Description: Reads recipes from `.goose/recipes/*.yaml` under each root
+  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
+  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by title
+  - [x] Examples: No
+  - [x] Errors: No
 
 ### DOC-007: `GeminiAgentSetupProvider.list_prompts`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001 (iteration 2)
 - **File:** `src/agent_skill_router/agents/gemini.py`
 - **Gap ID:** GAP-007
 - **Type:** Function
@@ -150,15 +153,16 @@ related:
   ```
   def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
   ```
-- **Documentation Plan:**
-  - [ ] Description: Scans Gemini-specific prompt directories under each root for slash command definitions
-  - [ ] Parameters: `roots` (list of base directories to scan; defaults to configured roots if None)
-  - [ ] Returns: List of `SlashCommand` objects discovered
-  - [ ] Examples: No
-  - [ ] Errors: No
+- **Documentation Added:**
+  - [x] Description: Scans `.gemini/commands/**/*.toml` under each root for slash command definitions
+  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
+  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by colon-joined path name
+  - [x] Examples: No
+  - [x] Errors: No
 
 ### DOC-008: `CodexAgentSetupProvider.list_prompts`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001 (iteration 2)
 - **File:** `src/agent_skill_router/agents/codex.py`
 - **Gap ID:** GAP-008
 - **Type:** Function
@@ -168,12 +172,12 @@ related:
   ```
   def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]
   ```
-- **Documentation Plan:**
-  - [ ] Description: Scans Codex-specific prompt directories under each root for slash command definitions
-  - [ ] Parameters: `roots` (list of base directories to scan; defaults to configured roots if None)
-  - [ ] Returns: List of `SlashCommand` objects discovered
-  - [ ] Examples: No
-  - [ ] Errors: No
+- **Documentation Added:**
+  - [x] Description: Scans `.codex/prompts/*.md` under each root for slash command definitions
+  - [x] Parameters: `roots` (list of base directories to scan; defaults to `[Path.cwd()]` if None)
+  - [x] Returns: List of `SlashCommand` objects discovered, de-duplicated by stem
+  - [x] Examples: No
+  - [x] Errors: No
 
 ---
 

@@ -74,13 +74,13 @@ Before making a decision, calculate coverage:
 
 | Metric | Value |
 |--------|-------|
-| **Documented Exports** | 77 |
+| **Documented Exports** | 81 |
 | **Total Exports** | 95 |
-| **Current Coverage** | 81.1% |
+| **Current Coverage** | 85.3% |
 | **Target** | 90% |
-| **Gap** | 8.9% |
-| **PENDING Items** | 4 |
-| **Auto-Documentable** | 4 |
+| **Gap** | 4.7% |
+| **PENDING Items** | 0 |
+| **Auto-Documentable** | 0 |
 
 ## Coverage History
 
@@ -89,7 +89,7 @@ Track progress across loops:
 | Loop | Coverage | Docs Added | Cumulative Gain |
 |------|----------|------------|-----------------|
 | 1 | 81.1% | 1 (`build_mcp`) | +___ % |
-| 2 | ___ % | ___ | +___ % |
+| 2 | 85.3% | 4 (`list_prompts` × opencode/gemini/codex + confirmed goose) | +4.2% |
 | ... | ... | ... | ... |
 
 ## Manual Override
