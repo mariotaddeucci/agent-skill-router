@@ -40,9 +40,19 @@ class GeminiSetupProvider(AgentSetupProvider):
     name = "gemini"
 
     def config_path_workspace(self) -> Path:
+        """Return the path to the Gemini CLI MCP config file for workspace-level installation.
+
+        Returns:
+            Path — ``<cwd>/.gemini/settings.json``
+        """
         return Path.cwd() / ".gemini" / "settings.json"
 
     def config_path_user(self) -> Path:
+        """Return the path to the Gemini CLI MCP config file for user-level installation.
+
+        Returns:
+            Path — ``~/.gemini/settings.json``
+        """
         return Path.home() / ".gemini" / "settings.json"
 
     def discover(self) -> list[Path]:
@@ -103,6 +113,16 @@ class GeminiSetupProvider(AgentSetupProvider):
         return commands
 
     def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        """Scan ``.gemini/commands/**/*.toml`` under each root for slash command definitions.
+
+        Args:
+            roots: List of base directories to scan.  Defaults to ``[Path.cwd()]``
+                when *None*.
+
+        Returns:
+            List of :class:`SlashCommand` objects discovered, de-duplicated by
+            colon-joined path name (e.g. ``subdir:command``).
+        """
         seen: set[str] = set()
         commands: list[SlashCommand] = []
         for root in roots or [Path.cwd()]:

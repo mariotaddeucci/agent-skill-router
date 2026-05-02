@@ -256,6 +256,94 @@ agent-skill-router setup-mcp github-copilot --user
 
 ---
 
+## `init-workspace`
+
+Make the workspace multi-agent friendly by consolidating instruction files and skill directories.
+
+```bash
+agent-skill-router init-workspace [OPTIONS]
+```
+
+### Options
+
+| Option | Default | Description |
+|---|---|---|
+| `--dry-run` | `false` | Print planned actions without modifying anything |
+| `--force`, `-f` | `false` | Overwrite existing files and symlinks |
+| `--workspace-dir PATH` | auto-detect | Explicit workspace root directory |
+| `--help` | | Show help |
+
+### What it does
+
+1. **Consolidates instruction files** — reads `CLAUDE.md` and `.github/copilot-instructions.md` (when they exist as real files), merges their content into `AGENTS.md`, then replaces the originals with symlinks pointing to `AGENTS.md`. Also creates symlinks for `GEMINI.md`.
+2. **Consolidates skill directories** — moves skills from provider-specific directories (`.agents/skills/`, `.cursor/skills/`, `.github/skills/`, `.gemini/skills/`, `.codex/skills/`, `.goose/skills/`, `.opencode/skills/`) into `.claude/skills/` (the canonical location), then creates symlinks from the original directories to `.claude/skills/`.
+
+### Examples
+
+```bash
+# Preview all planned changes without modifying anything
+agent-skill-router init-workspace --dry-run
+
+# Apply the changes
+agent-skill-router init-workspace
+
+# Overwrite existing AGENTS.md and existing skill directories
+agent-skill-router init-workspace --force
+
+# Run against a specific project
+agent-skill-router init-workspace --workspace-dir /path/to/project
+```
+
+### Sample output
+
+```
+  CREATE AGENTS.md
+  MERGE CLAUDE.md → AGENTS.md
+  SYMLINK CLAUDE.md → AGENTS.md
+  SYMLINK .github/copilot-instructions.md → AGENTS.md
+  SYMLINK GEMINI.md → AGENTS.md
+  MOVE .agents/skills → .claude/skills
+  SYMLINK .agents/skills → .claude/skills
+  SYMLINK .cursor/skills → .claude/skills
+  ...
+
+9 action(s) completed.
+```
+
+### Symlink mapping
+
+After running `init-workspace`, the following symlinks are created:
+
+**Instruction files:**
+
+| Symlink | Points to |
+|---|---|
+| `CLAUDE.md` | `AGENTS.md` |
+| `.github/copilot-instructions.md` | `AGENTS.md` |
+| `GEMINI.md` | `AGENTS.md` |
+
+**Skill directories:**
+
+| Symlink | Points to |
+|---|---|
+| `.agents/skills` | `.claude/skills` |
+| `.cursor/skills` | `.claude/skills` |
+| `.github/skills` | `.claude/skills` |
+| `.gemini/skills` | `.claude/skills` |
+| `.codex/skills` | `.claude/skills` |
+| `.goose/skills` | `.claude/skills` |
+| `.opencode/skills` | `.claude/skills` |
+
+### Idempotency
+
+Running `init-workspace` twice is safe — existing symlinks are preserved and `AGENTS.md` is not overwritten (unless `--force` is used).
+
+### Benefits
+
+Every agent that reads its own native instruction file (`CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`) will transparently follow the symlink and read the same `AGENTS.md`. Similarly, skills placed in `.claude/skills/` are accessible to all agents via their respective symlinked directories.
+
+---
+
 ## Global `--workspace-dir`
 
 All commands except `setup-mcp` accept `--workspace-dir`. This flag overrides the automatic git-root detection and the `SKILL_ROUTER_WORKSPACE_DIR` environment variable.

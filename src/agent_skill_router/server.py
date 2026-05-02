@@ -188,6 +188,45 @@ def _resolve_roots(
 
 
 def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = None) -> FastMCP:
+    """Build and return a configured FastMCP server instance.
+
+    This is the primary public entry point for using Agent Skill Router as a
+    library. It wires together all enabled skill providers (Claude, Cursor,
+    Copilot, etc.), registers the ``list_skills`` and ``get_skill`` tools, and
+    exposes slash commands and MCP proxies according to the supplied settings.
+
+    Parameters:
+        settings: Optional Settings instance. When omitted, settings are loaded
+            from environment variables (``SKILL_ROUTER_*`` prefix). Pass an
+            explicit instance to override defaults in tests or embedded usage.
+        workspace_dir: Optional explicit workspace root. When provided, it is
+            used as-is (no git-root detection). When omitted, the workspace is
+            resolved from ``settings.workspace_dir`` first, then by walking up
+            from ``Path.cwd()`` to find a ``.git`` directory, and finally
+            falling back to ``Path.cwd()`` itself.
+
+    Returns:
+        A fully configured ``FastMCP`` instance ready to serve skill resources,
+        ``list_skills``/``get_skill`` tools, and any registered MCP prompts.
+        Pass the return value to ``mcp.run()`` or use it as a test client.
+
+    Example::
+
+        from agent_skill_router import build_mcp
+
+        mcp = build_mcp()
+        mcp.run()
+
+    To customise behaviour without environment variables::
+
+        from pathlib import Path
+        from agent_skill_router import build_mcp
+        from agent_skill_router.settings import Settings
+
+        settings = Settings(enable_bundled=False, enable_user_level=False)
+        mcp = build_mcp(settings=settings, workspace_dir=Path("/my/project"))
+        mcp.run()
+    """
     if settings is None:
         settings = Settings()
 

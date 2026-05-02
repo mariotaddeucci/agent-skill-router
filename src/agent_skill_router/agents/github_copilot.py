@@ -40,9 +40,19 @@ class GitHubCopilotSetupProvider(AgentSetupProvider):
     name = "github-copilot"
 
     def config_path_workspace(self) -> Path:
+        """Return the path to the GitHub Copilot MCP config file for workspace-level installation.
+
+        Returns:
+            Path — ``<cwd>/.vscode/mcp.json``
+        """
         return Path.cwd() / ".vscode" / "mcp.json"
 
     def config_path_user(self) -> Path:
+        """Return the path to the GitHub Copilot MCP config file for user-level installation.
+
+        Returns:
+            Path — ``~/.vscode/mcp.json``
+        """
         return Path.home() / ".vscode" / "mcp.json"
 
     def discover(self) -> list[Path]:
@@ -107,6 +117,21 @@ class GitHubCopilotSetupProvider(AgentSetupProvider):
         return commands
 
     def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        """Discover GitHub Copilot prompt files and return them as slash commands.
+
+        Scans ``.github/prompts/*.prompt.md`` under each root directory. Each
+        file's YAML front-matter ``description`` field is used as the command
+        description; the body (after the front-matter block) becomes the prompt
+        text. Duplicate stems are silently skipped — the first occurrence wins.
+
+        Parameters:
+          - roots: list[Path] | None - Base directories to search. Defaults to
+            ``[Path.cwd()]`` when *None*.
+
+        Returns:
+          list[SlashCommand] - One ``PromptSlashCommand`` per unique
+          ``*.prompt.md`` file discovered, ordered by filename within each root.
+        """
         seen: set[str] = set()
         commands: list[SlashCommand] = []
         for root in roots or [Path.cwd()]:

@@ -37,9 +37,19 @@ class OpenCodeSetupProvider(AgentSetupProvider):
     name = "opencode"
 
     def config_path_workspace(self) -> Path:
+        """Return the path to the OpenCode MCP config file for workspace-level installation.
+
+        Returns:
+            Path — ``<cwd>/.opencode/mcp.json``
+        """
         return Path.cwd() / ".opencode" / "mcp.json"
 
     def config_path_user(self) -> Path:
+        """Return the path to the OpenCode MCP config file for user-level installation.
+
+        Returns:
+            Path — ``~/.config/opencode/opencode.json``
+        """
         return Path.home() / ".config" / "opencode" / "opencode.json"
 
     def discover(self) -> list[Path]:
@@ -104,6 +114,15 @@ class OpenCodeSetupProvider(AgentSetupProvider):
         return commands
 
     def list_prompts(self, roots: list[Path] | None = None) -> list[SlashCommand]:
+        """Scan ``.opencode/commands/*.md`` under each root for slash command definitions.
+
+        Args:
+            roots: List of base directories to scan.  Defaults to ``[Path.cwd()]``
+                when *None*.
+
+        Returns:
+            List of :class:`SlashCommand` objects discovered, de-duplicated by stem.
+        """
         seen: set[str] = set()
         commands: list[SlashCommand] = []
         for root in roots or [Path.cwd()]:

@@ -11,6 +11,27 @@ class ExtraDirectory(BaseSettings):
 
 
 class Settings(BaseSettings):
+    """Configuration for the agent-skill-router MCP server.
+
+    All settings are read from environment variables prefixed with ``SKILL_ROUTER_``.
+    Nested objects use ``__`` as the delimiter (e.g. ``SKILL_ROUTER_EXTRA_DIRS__0__PATH``).
+
+    Individual vendor providers can be toggled via ``enable_<name>`` flags; when a
+    flag is ``None`` the value of ``providers_default`` is used, so setting
+    ``SKILL_ROUTER_PROVIDERS_DEFAULT=false`` disables every provider in one step while
+    still allowing opt-in via the specific flag.
+
+    Example:
+        Disable all providers except Claude::
+
+            SKILL_ROUTER_PROVIDERS_DEFAULT=false
+            SKILL_ROUTER_ENABLE_CLAUDE=true
+
+        Add an extra skills directory::
+
+            SKILL_ROUTER_EXTRA_DIRS__0__PATH=/path/to/my/skills
+    """
+
     model_config = SettingsConfigDict(
         env_prefix="SKILL_ROUTER_",
         env_nested_delimiter="__",
