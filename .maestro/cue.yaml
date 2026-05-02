@@ -3,15 +3,81 @@ settings:
   max_concurrent: 1
   queue_size: 15
 
+# Pipeline: Agent Automation (color: #06b6d4)
+
 subscriptions:
-  - name: Task Worker
+  - name: Agent Automation
     label: Task Worker
     event: task.pending
-    watch: 'TODO.md'
-    poll_minutes: 5
+    watch: '.maestro/tasks/*.md'
+    poll_minutes: 10
     prompt: |
-      There are pending tasks in TODO.md:
-      {content}
+      There are {{CUE_TASK_COUNT}} pending tasks in {{CUE_TASK_FILE}}:
+
+      {{CUE_TASK_LIST}}
 
       Pick the highest priority pending task and complete it.
       When done, check off the task in the file by replacing "- [ ]" with "- [x]".
+    output_prompt: |
+      The task has been completed. Now open a pull request linked to the issue:
+
+      1. Extract the issue number from the task file path (e.g. .maestro/tasks/42.md → issue #42).
+
+      2. Create a branch named fix/issue-<number> if it does not already exist:
+         git checkout -b fix/issue-<number>
+
+      3. Stage and commit all changes made during the task:
+         git add -A
+         git commit -m "fix: resolve issue #<number>
+
+         Closes #<number>"
+
+      4. Push the branch:
+         git push -u origin fix/issue-<number>
+
+      5. Open a pull request that closes the issue using the GitHub CLI:
+         gh pr create \
+           --title "fix: resolve issue #<number>" \
+           --body "Closes #<number>" \
+           --base main \
+           --head fix/issue-<number>
+
+      6. Report the URL of the created pull request.
+
+  - name: Agent Automation-chain-1
+    label: GitHub Issue Sync
+    event: time.heartbeat
+    interval_minutes: 60
+    prompt: |
+      Sync pending GitHub issues labeled "ready-for-dev" into the .maestro/tasks/ directory.
+
+      Run the following steps using the GitHub CLI:
+
+      1. List all open issues with the label "ready-for-dev":
+         gh issue list --label "ready-for-dev" --state open --json number,title,body,labels,assignees,url
+
+      2. For each issue returned, create or update a file at .maestro/tasks/<issue-number>.md
+         with the following format:
+
+         ```
+         # Issue #<number>: <title>
+
+         **URL:** <url>
+         **Labels:** <labels>
+         **Assignees:** <assignees>
+
+         ## Description
+
+         <body>
+
+         ## Tasks
+
+         - [ ] Implement the changes described in this issue
+         - [ ] Write or update tests
+         - [ ] Update documentation if needed
+         ```
+
+      3. Only create the file if it does not already exist (do not overwrite files
+         that already have progress tracked in them).
+
+      4. Report how many files were created or skipped.
