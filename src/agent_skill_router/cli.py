@@ -43,7 +43,7 @@ def _all_roots(settings: Settings, ws: Path) -> list[Path]:
     """Return all skill roots that would be used by build_mcp, in discovery order."""
     roots: list[Path] = []
     for attr, _cls, roots_by_level_template in _PROVIDER_ROOTS:
-        if not getattr(settings, attr):
+        if not settings.is_provider_enabled(attr):
             continue
         roots_by_level = _expand_workspace(roots_by_level_template, ws)
         roots.extend(

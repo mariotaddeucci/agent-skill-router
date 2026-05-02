@@ -245,7 +245,7 @@ def build_mcp(settings: Settings | None = None, workspace_dir: Path | None = Non
     # individually listed, not hidden behind the manifest template.
 
     for attr, provider_cls, roots_by_level_template in _PROVIDER_ROOTS:
-        if not getattr(settings, attr):
+        if not settings.is_provider_enabled(attr):
             continue
 
         roots_by_level = _expand_workspace(roots_by_level_template, ws)

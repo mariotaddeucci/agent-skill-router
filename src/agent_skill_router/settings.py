@@ -43,31 +43,54 @@ class Settings(BaseSettings):
         description="Enable skills bundled inside the agent-skill-router package",
     )
 
-    # Individual vendor provider toggles (all enabled by default)
-    # All vendors use the same SKILL.md format — only the directory differs.
-    enable_claude: bool = Field(default=True, description="Enable ClaudeSkillsProvider (~/.claude/skills/)")
-    enable_cursor: bool = Field(default=True, description="Enable CursorSkillsProvider (~/.cursor/skills/)")
-    enable_vscode: bool = Field(default=True, description="Enable VSCodeSkillsProvider (~/.copilot/skills/)")
-    enable_codex: bool = Field(
+    # Default state for all vendor providers.
+    # Set to False to disable every provider, then opt-in individually via
+    # their specific enable_<name> flag.
+    providers_default: bool = Field(
         default=True,
+        description=(
+            "Default enabled state applied to every vendor provider whose specific "
+            "enable_<name> flag is not explicitly set. "
+            "Set to False to disable all providers and opt-in one by one."
+        ),
+    )
+
+    # Individual vendor provider overrides — None means 'use providers_default'.
+    # All vendors use the same SKILL.md format — only the directory differs.
+    enable_claude: bool | None = Field(default=None, description="Enable ClaudeSkillsProvider (~/.claude/skills/)")
+    enable_cursor: bool | None = Field(default=None, description="Enable CursorSkillsProvider (~/.cursor/skills/)")
+    enable_vscode: bool | None = Field(default=None, description="Enable VSCodeSkillsProvider (~/.copilot/skills/)")
+    enable_codex: bool | None = Field(
+        default=None,
         description="Enable CodexSkillsProvider (/etc/codex/skills/ and ~/.codex/skills/)",
     )
-    enable_gemini: bool = Field(default=True, description="Enable GeminiSkillsProvider (~/.gemini/skills/)")
-    enable_goose: bool = Field(default=True, description="Enable GooseSkillsProvider (~/.config/agents/skills/)")
-    enable_copilot: bool = Field(default=True, description="Enable CopilotSkillsProvider (~/.copilot/skills/)")
-    enable_opencode: bool = Field(
-        default=True,
+    enable_gemini: bool | None = Field(default=None, description="Enable GeminiSkillsProvider (~/.gemini/skills/)")
+    enable_goose: bool | None = Field(default=None, description="Enable GooseSkillsProvider (~/.config/agents/skills/)")
+    enable_copilot: bool | None = Field(default=None, description="Enable CopilotSkillsProvider (~/.copilot/skills/)")
+    enable_opencode: bool | None = Field(
+        default=None,
         description="Enable OpenCodeSkillsProvider (~/.config/opencode/skills/)",
     )
 
     # Generic .agents/skills provider
-    enable_agents: bool = Field(
-        default=True,
+    enable_agents: bool | None = Field(
+        default=None,
         description="Enable generic agent skills (<cwd>/.agents/skills/ and ~/.agents/skills/)",
     )
 
     # OpenClaw managed skills
-    enable_openclaw: bool = Field(default=True, description="Enable OpenClaw managed skills (~/.openclaw/skills/)")
+    enable_openclaw: bool | None = Field(
+        default=None, description="Enable OpenClaw managed skills (~/.openclaw/skills/)"
+    )
+
+    def is_provider_enabled(self, attr: str) -> bool:
+        """Return the effective enabled state for a vendor provider attribute.
+
+        Resolves None (unset) to providers_default, allowing a single flag to
+        disable all providers at once while still allowing per-provider opt-in.
+        """
+        value: bool | None = getattr(self, attr)
+        return value if value is not None else self.providers_default
 
     # Extra directories to scan for skills (same SKILL.md format as all vendors)
     extra_dirs: list[ExtraDirectory] = Field(

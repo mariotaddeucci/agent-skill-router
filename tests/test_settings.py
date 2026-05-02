@@ -8,16 +8,21 @@ def test_defaults_all_enabled():
     assert s.enable_workspace_level is True
     assert s.enable_user_level is True
     assert s.enable_bundled is True
-    assert s.enable_claude is True
-    assert s.enable_cursor is True
-    assert s.enable_vscode is True
-    assert s.enable_codex is True
-    assert s.enable_gemini is True
-    assert s.enable_goose is True
-    assert s.enable_copilot is True
-    assert s.enable_opencode is True
-    assert s.enable_agents is True
-    assert s.enable_openclaw is True
+    assert s.providers_default is True
+    # raw values are None (unset) — effective value resolves via providers_default
+    assert s.enable_claude is None
+    assert s.enable_cursor is None
+    # effective state is True (providers_default=True)
+    assert s.is_provider_enabled("enable_claude") is True
+    assert s.is_provider_enabled("enable_cursor") is True
+    assert s.is_provider_enabled("enable_vscode") is True
+    assert s.is_provider_enabled("enable_codex") is True
+    assert s.is_provider_enabled("enable_gemini") is True
+    assert s.is_provider_enabled("enable_goose") is True
+    assert s.is_provider_enabled("enable_copilot") is True
+    assert s.is_provider_enabled("enable_opencode") is True
+    assert s.is_provider_enabled("enable_agents") is True
+    assert s.is_provider_enabled("enable_openclaw") is True
     assert s.extra_dirs == []
 
 
@@ -25,8 +30,29 @@ def test_env_prefix_disables_provider(monkeypatch):
     monkeypatch.setenv("SKILL_ROUTER_ENABLE_CLAUDE", "false")
     s = Settings()
     assert s.enable_claude is False
-    # others stay enabled
-    assert s.enable_cursor is True
+    assert s.is_provider_enabled("enable_claude") is False
+    # others stay enabled via providers_default
+    assert s.enable_cursor is None
+    assert s.is_provider_enabled("enable_cursor") is True
+
+
+def test_providers_default_false_disables_all(monkeypatch):
+    monkeypatch.setenv("SKILL_ROUTER_PROVIDERS_DEFAULT", "false")
+    s = Settings()
+    assert s.providers_default is False
+    assert s.is_provider_enabled("enable_claude") is False
+    assert s.is_provider_enabled("enable_cursor") is False
+    assert s.is_provider_enabled("enable_agents") is False
+
+
+def test_providers_default_false_with_explicit_opt_in(monkeypatch):
+    monkeypatch.setenv("SKILL_ROUTER_PROVIDERS_DEFAULT", "false")
+    monkeypatch.setenv("SKILL_ROUTER_ENABLE_AGENTS", "true")
+    s = Settings()
+    assert s.providers_default is False
+    assert s.is_provider_enabled("enable_agents") is True
+    assert s.is_provider_enabled("enable_claude") is False
+    assert s.is_provider_enabled("enable_cursor") is False
 
 
 def test_env_prefix_disables_scope(monkeypatch):
@@ -67,4 +93,8 @@ def test_settings_constructed_directly():
     s = Settings(enable_claude=False, enable_gemini=False)
     assert s.enable_claude is False
     assert s.enable_gemini is False
-    assert s.enable_cursor is True
+    assert s.is_provider_enabled("enable_claude") is False
+    assert s.is_provider_enabled("enable_gemini") is False
+    # cursor not set — resolves to providers_default (True)
+    assert s.enable_cursor is None
+    assert s.is_provider_enabled("enable_cursor") is True
