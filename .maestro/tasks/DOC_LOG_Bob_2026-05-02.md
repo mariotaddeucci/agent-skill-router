@@ -39,3 +39,15 @@
 - **Coverage Impact:** +estimated
 
 ---
+
+#### DOC-004: `ClaudeSetupProvider.config_path_user`
+- **Status:** IMPLEMENTED
+- **File:** `src/agent_skill_router/agents/claude.py`
+- **Type:** Method
+- **Documentation Summary:**
+  - Description: Returns user-scoped Claude MCP config path (`~/.claude/mcp.json`)
+  - Parameters: None
+  - Examples: No
+- **Coverage Impact:** +estimated
+
+---

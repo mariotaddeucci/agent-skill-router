@@ -77,7 +77,8 @@
 ---
 
 ### DOC-004: `ClaudeProvider.config_path_user`
-- **Status:** `PENDING`
+- **Status:** `IMPLEMENTED`
+- **Implemented In:** Loop 00001
 - **File:** `src/agent_skill_router/agents/claude.py`
 - **Gap ID:** GAP-004
 - **Type:** Method
@@ -87,12 +88,12 @@
   ```
   def config_path_user(self) -> Path
   ```
-- **Documentation Plan:**
-  - [ ] Description: Return the path to the Claude MCP config file for user-level installation (`~/.claude/mcp.json`)
-  - [ ] Parameters: None
-  - [ ] Returns: `Path` — user-scoped config path
-  - [ ] Examples: No
-  - [ ] Errors: N/A
+- **Documentation Added:**
+  - [x] Description: Return the path to the Claude MCP config file for user-level installation (`~/.claude/mcp.json`)
+  - [x] Parameters: None
+  - [x] Returns: `Path` — user-scoped config path
+  - [x] Examples: No
+  - [x] Errors: N/A
 
 ---
 

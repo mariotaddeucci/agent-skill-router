@@ -50,6 +50,11 @@ class ClaudeSetupProvider(AgentSetupProvider):
         return Path.cwd() / ".claude" / "mcp.json"
 
     def config_path_user(self) -> Path:
+        """Return the user-scoped Claude MCP config path.
+
+        Returns:
+            Path — ``~/.claude/mcp.json``
+        """
         return Path.home() / ".claude" / "mcp.json"
 
     def discover(self) -> list[Path]:
