@@ -26,8 +26,6 @@ theme:
   features:
     - navigation.tabs
     - navigation.tabs.sticky
-    - navigation.sections
-    - navigation.expand
     - navigation.top
     - navigation.footer
     - content.code.copy
@@ -66,9 +64,8 @@ nav:
   - Home: index.md
   - Concepts: concepts.md
   - Supported Agents: agents.md
-  - Skills:
-      - Writing Skills: skills.md
-      - Slash Commands: slash-commands.md
+  - Skills: skills.md
+  - Slash Commands: slash-commands.md
   - Reference:
       - CLI: cli.md
       - Configuration: configuration.md
